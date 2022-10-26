@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="12dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -15,17 +18,17 @@
             android:padding="15dp">
 
             <EditText
-                android:id="@+id/textViewYeniAdetDialogBox"
+                android:id="@+id/tvYeniAdet"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
+                android:layout_gravity="center"
                 android:ems="10"
                 android:hint="Yeni Adet Girin"
                 android:inputType="numberDecimal"
                 android:maxLength="15" />
 
             <Button
-                android:id="@+id/button"
+                android:id="@+id/btnKaydet"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
@@ -34,4 +37,4 @@
         </LinearLayout>
 
     </androidx.cardview.widget.CardView>
-</RelativeLayout>
+</LinearLayout>

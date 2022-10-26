@@ -5,43 +5,42 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     app:cardBackgroundColor="#FFFFFF"
+    app:cardCornerRadius="10dp"
     app:cardPreventCornerOverlap="true"
     app:cardUseCompatPadding="true">
 
-    <RelativeLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
-        android:background="@drawable/background_list_item">
+        android:background="@drawable/background_list_item"
+        android:padding="5dp">
 
         <TextView
-            android:id="@+id/textView"
+            android:id="@+id/tvPosition"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentStart="true"
-            android:layout_centerVertical="true"
-            android:layout_marginStart="5dp"
-            android:layout_marginTop="5dp"
-            android:layout_marginEnd="5dp"
-            android:layout_marginBottom="5dp"
-            android:text=")"
             android:textColor="#FFFFFF"
-            android:textSize="15sp" />
+            android:textSize="15sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="1)" />
 
         <LinearLayout
             android:id="@+id/linearLayout"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_alignStart="@id/textView"
             android:layout_marginStart="20dp"
-            android:layout_marginTop="5dp"
             android:layout_marginEnd="20dp"
-            android:layout_marginBottom="5dp"
-            android:layout_toStartOf="@id/buttonSil"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/btnSil"
+            app:layout_constraintStart_toStartOf="@id/tvPosition"
+            app:layout_constraintTop_toTopOf="parent">
 
             <TextView
-                android:id="@+id/textViewKayitliCoinAdi"
+                android:id="@+id/tvKayitliCoinAdi"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="20dp"
@@ -51,10 +50,11 @@
                 android:layout_weight="1"
                 android:textAlignment="center"
                 android:textColor="#FFFFFF"
-                android:textSize="15sp" />
+                android:textSize="15sp"
+                tools:text="BTCUSDT" />
 
             <TextView
-                android:id="@+id/textViewKayitliAdet"
+                android:id="@+id/tvKayitliAdet"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="20dp"
@@ -64,20 +64,20 @@
                 android:layout_weight="1"
                 android:textAlignment="center"
                 android:textColor="#FFFFFF"
-                android:textSize="15sp" />
+                android:textSize="15sp"
+                tools:text="0 adet alım" />
 
         </LinearLayout>
 
         <ImageButton
-            android:id="@+id/buttonSil"
+            android:id="@+id/btnSil"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
-            android:layout_marginEnd="5dp"
-            android:background="@android:drawable/ic_menu_delete" />
+            android:background="@android:drawable/ic_menu_delete"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-    </RelativeLayout>
-
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.cardview.widget.CardView>

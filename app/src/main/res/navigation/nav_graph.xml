@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/savedCoinsFragment">
+
+    <fragment
+        android:id="@+id/savedCoinsFragment"
+        android:name="com.example.hesapmakinesi.ui.savedcoins.SavedCoinsFragment"
+        android:label="fragment_saved_coins"
+        tools:layout="@layout/fragment_saved_coins" >
+        <action
+            android:id="@+id/action_savedCoinsFragment_to_calculateFragment"
+            app:destination="@id/calculateFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/buyFragment"
+        android:name="com.example.hesapmakinesi.ui.calculateViewPager2.buyandsell.BuyFragment"
+        android:label="fragment_buy"
+        tools:layout="@layout/fragment_buy" />
+    <fragment
+        android:id="@+id/calculateFragment"
+        android:name="com.example.hesapmakinesi.ui.calculateViewPager2.CalculateFragment"
+        android:label="fragment_calculate"
+        tools:layout="@layout/fragment_calculate" />
+    <fragment
+        android:id="@+id/sellFragment2"
+        android:name="com.example.hesapmakinesi.ui.calculateViewPager2.buyandsell.SellFragment"
+        android:label="fragment_sell"
+        tools:layout="@layout/fragment_sell" />
+</navigation>
