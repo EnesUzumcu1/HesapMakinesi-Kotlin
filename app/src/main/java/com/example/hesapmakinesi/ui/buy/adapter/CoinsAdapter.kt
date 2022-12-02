@@ -1,21 +1,19 @@
-package com.example.hesapmakinesi.ui.calculateViewPager2.buyandsell.adapter
+package com.example.hesapmakinesi.ui.buy.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.Filter
 import android.widget.Filterable
 import androidx.recyclerview.widget.RecyclerView
-import com.example.hesapmakinesi.data.model.Coins
+import com.example.hesapmakinesi.data.model.CoinsResponseItem
 import com.example.hesapmakinesi.databinding.ListItemCoinBinding
 import java.text.DecimalFormat
-import java.util.*
-import kotlin.collections.ArrayList
 
 class CoinsAdapter(
-    private var coinlerArrayList: ArrayList<Coins>,
+    private var coinlerArrayList: MutableList<CoinsResponseItem>,
     private val listener: OnClickListener
 ) : RecyclerView.Adapter<CoinsAdapter.CoinsAdapterViewHolder>(), Filterable {
-    var coinlerFilterArrayList: ArrayList<Coins> = ArrayList()
+    var coinlerFilterArrayList: MutableList<CoinsResponseItem> = mutableListOf()
 
     init {
         coinlerFilterArrayList = coinlerArrayList
@@ -23,15 +21,15 @@ class CoinsAdapter(
 
     class CoinsAdapterViewHolder(private val binding: ListItemCoinBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        fun bind(coins: Coins, listener: OnClickListener, position: Int) {
+        fun bind(coins: CoinsResponseItem, listener: OnClickListener, position: Int) {
 
             val df = DecimalFormat("0")
             df.maximumFractionDigits = 340
 
-            binding.tvPosition.text = (position + 1).toString() + ")"
+            binding.tvPosition.text = String.format("%s)",position + 1)
 
-            binding.tvCoinAdi.text = coins.isim
-            binding.tvCoinFiyati.text = String.format("%s $", df.format(coins.fiyat))
+            binding.tvCoinAdi.text = coins.symbol
+            binding.tvCoinFiyati.text = String.format("%s $", df.format(coins.price?.toDouble()))
             itemView.setOnClickListener {
                 listener.onItemClickedCoinlerList(
                     coins
@@ -64,14 +62,14 @@ class CoinsAdapter(
 
     private var filtre: Filter = object : Filter() {
         override fun performFiltering(charSequence: CharSequence): FilterResults {
-            val filtereliListe: ArrayList<Coins> = ArrayList()
+            val filtereliListe: MutableList<CoinsResponseItem> = mutableListOf()
             if (charSequence == "" || charSequence.isEmpty()) {
                 filtereliListe.addAll(coinlerArrayList)
             } else {
                 val filterPattern =
                     charSequence.toString().uppercase().trim()
                 for (coins in coinlerArrayList) {
-                    if (coins.isim.uppercase().contains(filterPattern)) {
+                    if (coins.symbol?.uppercase()?.contains(filterPattern) == true) {
                         filtereliListe.add(coins)
                     }
                 }
@@ -84,14 +82,14 @@ class CoinsAdapter(
 
         override fun publishResults(charSequence: CharSequence, filterResults: FilterResults) {
             //coinlerArrayList.clear()
-            coinlerFilterArrayList = (filterResults.values as ArrayList<Coins>)
+            coinlerFilterArrayList = (filterResults.values as MutableList<CoinsResponseItem>)
             notifyDataSetChanged()
         }
     }
 
     interface OnClickListener {
         //secilen coin bilgilerii getirmek icin onClick atandi
-        fun onItemClickedCoinlerList(coins: Coins)
+        fun onItemClickedCoinlerList(coins: CoinsResponseItem)
     }
 
 }

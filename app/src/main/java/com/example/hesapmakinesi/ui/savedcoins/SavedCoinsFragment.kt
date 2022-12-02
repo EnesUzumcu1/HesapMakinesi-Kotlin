@@ -1,37 +1,40 @@
 package com.example.hesapmakinesi.ui.savedcoins
 
-import android.content.Context
-import android.content.SharedPreferences
+import android.app.AlertDialog
+import android.content.DialogInterface
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import com.example.hesapmakinesi.R
-import com.example.hesapmakinesi.data.model.Calculate
 import com.example.hesapmakinesi.data.model.ListSizeControl
 import com.example.hesapmakinesi.data.model.SavedCoins
 import com.example.hesapmakinesi.databinding.FragmentSavedCoinsBinding
 import com.example.hesapmakinesi.ui.savedcoins.adapter.SavedCoinsDiffutilAdapter
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
+import com.example.hesapmakinesi.utils.AlertDialogBuilder
+import com.example.hesapmakinesi.utils.Constants
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.newFixedThreadPoolContext
 
+@AndroidEntryPoint
 class SavedCoinsFragment : Fragment(), SavedCoinsDiffutilAdapter.OnClickListenerSavedCoins {
     private lateinit var binding: FragmentSavedCoinsBinding
     private lateinit var navController: NavController
+
+    private val viewModel by viewModels<SavedCoinsViewModel>()
 
     private var kayitliCoinlers: ArrayList<SavedCoins> = java.util.ArrayList<SavedCoins>()
     private var stringsID: ArrayList<ListSizeControl> = java.util.ArrayList()
 
     private lateinit var adapter: SavedCoinsDiffutilAdapter
-
-    private var tiklananPosition = 0
-
-    //resume ilke defa çalışınca istenenleri yapmaması icin kullanıldı
-    private var i = 0
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -47,209 +50,166 @@ class SavedCoinsFragment : Fragment(), SavedCoinsDiffutilAdapter.OnClickListener
         atamalar()
         buildrecyclerview()
 
-        binding.yeniCoinEkleButton.setOnClickListener {
+        binding.btnAddNewCoin.setOnClickListener {
             veriKontrol()
-            binding.listeRecyclerview.smoothScrollToPosition(adapter.itemCount)
+            adapter.notifyItemInserted(adapter.itemCount)
+            binding.rvSavedCoinsList.smoothScrollToPosition(adapter.itemCount)
             saveData()
-            binding.toolbar.notSayisi.text = kayitliCoinlers.size.toString() + "/20"
-            gorunurlukDegistir()
+            changeVisibility()
         }
+        updateSavedCoinListNewQuantity()
     }
 
-    private fun coinEkle(isim: String, adet: Int, id: String, idPosition: Int) {
-        kayitliCoinlers.add(SavedCoins(isim, id, adet, idPosition))
+    private fun coinEkle(prefName: String) {
+        kayitliCoinlers.add(
+            SavedCoins(
+                isim = Constants.DEFAULT_UNSELECTED_COIN_NAME_TEXT,
+                id = prefName,
+                adet = 0
+            )
+        )
     }
 
     private fun veriKontrol() {
         var id = ""
-        var i = 0
-        try {
-            while (i < 21) {
-                if (stringsID[i].durum) {
-                    id = stringsID[i].id
-                    stringsID[i].durum = false
-                    break
-                }
-                i++
+        for (data in stringsID) {
+            if (data.durum) {
+                id = data.id
+                data.durum = false
+                break
             }
+        }
 
-            val preferences: SharedPreferences =
-                requireActivity().getSharedPreferences(id, Context.MODE_PRIVATE)
-            val isim = preferences.getString("coinAdi", "Eklemek için tıkla")
-            var hesapArrayList: java.util.ArrayList<Calculate> = java.util.ArrayList()
-            val gson = Gson()
-            val json = preferences.getString("hesaplar", null)
-            // below line is to get the type of our array list.
-            val type = object : TypeToken<java.util.ArrayList<Calculate>>() {}.type
-            // in below line we are getting data from gson
-            // and saving it to our array list
-            json?.let {
-                hesapArrayList = gson.fromJson(it, type)
-            }
-            val adet = hesapArrayList.size
-
-            if (id != "") {
-                coinEkle(isim.toString(), adet, id, i)
-            } else {
-                Toast.makeText(requireActivity(), "Liste Dolu", Toast.LENGTH_SHORT).show()
-            }
-        } catch (_: Exception) {
+        if (id != "") {
+            coinEkle(
+                prefName = id
+            )
+        } else {
+            Toast.makeText(requireContext(), "Liste Dolu", Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun atamalar() {
         navController = findNavController()
-        kayitliCoinlers = java.util.ArrayList<SavedCoins>()
-        stringsID = java.util.ArrayList()
         loadData()
         if (stringsID.size == 0) {
-            //20 adet not eklemek için sınır koyulacak
-            for (i in 1..20) {
-                stringsID.add(ListSizeControl("Note$i", true))
-                //durum true ise kullanılmamış bir id, eğer false ise id kullanılıyor
-            }
+            //durum true ise kullanılmamış bir id, eğer false ise id kullanılıyor
+            stringsID.add(ListSizeControl(Constants.COIN_DETAIL_1, true))
+            stringsID.add(ListSizeControl(Constants.COIN_DETAIL_2, true))
+            stringsID.add(ListSizeControl(Constants.COIN_DETAIL_3, true))
+            stringsID.add(ListSizeControl(Constants.COIN_DETAIL_4, true))
+            stringsID.add(ListSizeControl(Constants.COIN_DETAIL_5, true))
+            stringsID.add(ListSizeControl(Constants.COIN_DETAIL_6, true))
+            stringsID.add(ListSizeControl(Constants.COIN_DETAIL_7, true))
+            stringsID.add(ListSizeControl(Constants.COIN_DETAIL_8, true))
+            stringsID.add(ListSizeControl(Constants.COIN_DETAIL_9, true))
+            stringsID.add(ListSizeControl(Constants.COIN_DETAIL_10, true))
+            stringsID.add(ListSizeControl(Constants.COIN_DETAIL_11, true))
+            stringsID.add(ListSizeControl(Constants.COIN_DETAIL_12, true))
+            stringsID.add(ListSizeControl(Constants.COIN_DETAIL_13, true))
+            stringsID.add(ListSizeControl(Constants.COIN_DETAIL_14, true))
+            stringsID.add(ListSizeControl(Constants.COIN_DETAIL_15, true))
+            stringsID.add(ListSizeControl(Constants.COIN_DETAIL_16, true))
+            stringsID.add(ListSizeControl(Constants.COIN_DETAIL_17, true))
+            stringsID.add(ListSizeControl(Constants.COIN_DETAIL_18, true))
+            stringsID.add(ListSizeControl(Constants.COIN_DETAIL_19, true))
+            stringsID.add(ListSizeControl(Constants.COIN_DETAIL_20, true))
         }
-        gorunurlukDegistir()
-        binding.toolbar.notSayisi.text = kayitliCoinlers.size.toString() + "/20"
+        changeVisibility()
     }
 
-    private fun gorunurlukDegistir() {
+    private fun changeVisibility() {
         if (kayitliCoinlers.size == 0) {
-            binding.listeRecyclerview.visibility = View.GONE
-            binding.textViewBosUyarisi.visibility = View.VISIBLE
+            binding.rvSavedCoinsList.visibility = View.GONE
+            binding.tvEmptyList.visibility = View.VISIBLE
         } else {
-            binding.listeRecyclerview.visibility = View.VISIBLE
-            binding.textViewBosUyarisi.visibility = View.GONE
+            binding.rvSavedCoinsList.visibility = View.VISIBLE
+            binding.tvEmptyList.visibility = View.GONE
         }
-
+        binding.toolbar.notSayisi.text = String.format("%s/20", kayitliCoinlers.size.toString())
     }
 
     private fun buildrecyclerview() {
         adapter = SavedCoinsDiffutilAdapter(this)
-        binding.listeRecyclerview.setHasFixedSize(true)
-        binding.listeRecyclerview.adapter = adapter.apply {
+        binding.rvSavedCoinsList.setHasFixedSize(true)
+        binding.rvSavedCoinsList.adapter = adapter.apply {
             submitList(kayitliCoinlers)
         }
-        binding.listeRecyclerview.smoothScrollToPosition(adapter.itemCount)
+        binding.rvSavedCoinsList.smoothScrollToPosition(adapter.itemCount)
     }
 
-    override fun onItemClickedSavedCoins(savedCoins: SavedCoins, position: Int, islemID: Int) {
-        if (islemID == 1) {
-            stringsID[savedCoins.idPosition] =  ListSizeControl(savedCoins.id,true)
-            kayitliCoinlers.removeAt(position)
-            adapter.notifyDataSetChanged()
+    private fun deleteSavedCoin(savedCoins: SavedCoins, position: Int) {
+        stringsID.first {
+            it.id == savedCoins.id
+        }.durum = true
 
-            //Verileri hafızan kalıcı olarak siliyor
-            val sharedPreferences: SharedPreferences =
-                requireActivity().getSharedPreferences(savedCoins.id, Context.MODE_PRIVATE)
-            sharedPreferences.edit().clear().apply()
-            saveData()
-            gorunurlukDegistir()
-        } else if (islemID == 2) {
-            tiklananPosition = position
+        kayitliCoinlers.removeAt(position)
+        //adapter.notifyDataSetChanged()
+        adapter.notifyItemRemoved(position)
+        adapter.notifyItemRangeChanged(position,kayitliCoinlers.size)
+        //Verileri hafızan kalıcı olarak siliyor
+        viewModel.deleteCoinDetail(savedCoins.id)
+        saveData()
+        changeVisibility()
+    }
 
-            navController.navigate(R.id.calculateFragment, Bundle().apply {
-                val value: String = savedCoins.id
-                putString("coinAdi", value)
+    override fun onItemClickedSavedCoinsDelete(savedCoins: SavedCoins, position: Int) {
+        val listener = DialogInterface.OnClickListener { p0: DialogInterface?, p1: Int ->
+            when (p1) {
+                AlertDialog.BUTTON_NEGATIVE -> {
+                    deleteSavedCoin(savedCoins, position)
+                }
+                AlertDialog.BUTTON_POSITIVE -> {
+                }
             }
-            )
         }
-        binding.toolbar.notSayisi.text = kayitliCoinlers?.size.toString() + "/20"
+        AlertDialogBuilder(requireContext(), listener,savedCoins)
+    }
+
+    override fun onItemClickedSavedCoinsDetail(savedCoins: SavedCoins) {
+        navController.navigate(
+            R.id.action_savedCoinsFragment_to_calculateFragment,
+            Bundle().apply {
+                val value: String = savedCoins.id
+                putString(Constants.SEND_PREF_NAME, value)
+            }
+        )
     }
 
     private fun loadData() {
-        // method to load arraylist from shared prefs
-        // initializing our shared prefs with name as
-        // shared preferences.
-        val sharedPreferences: SharedPreferences =
-            requireActivity().getSharedPreferences("Liste", Context.MODE_PRIVATE)
-
-        // creating a variable for gson.
-        val gson = Gson()
-        val gson2 = Gson()
-
-        // below line is to get to string present from our
-        // shared prefs if not present setting it as null.
-        val json = sharedPreferences.getString("listeler", null)
-        val json2 = sharedPreferences.getString("IDler", null)
-
-        // below line is to get the type of our array list.
-        val type = object : TypeToken<java.util.ArrayList<SavedCoins?>?>() {}.type
-        val type2 = object : TypeToken<java.util.ArrayList<ListSizeControl?>?>() {}.type
-
-        // in below line we are getting data from gson
-        // and saving it to our array list
-        json?.let {
-            type?.let {
-                kayitliCoinlers = gson.fromJson<java.util.ArrayList<SavedCoins>>(json, type)
-            }
+        viewModel.getSavedCoinsList().apply {
+            kayitliCoinlers = this
         }
-
-        json2?.let {
-            type2?.let {
-                stringsID = gson2.fromJson(json2, type2)
-            }
+        viewModel.getIDs().apply {
+            stringsID = this
         }
     }
 
     private fun saveData() {
-        // method for saving the data in array list.
-        // creating a variable for storing data in
-        // shared preferences.
-        val sharedPreferences: SharedPreferences =
-            requireActivity().getSharedPreferences("Liste", Context.MODE_PRIVATE)
-
-        // creating a variable for editor to
-        // store data in shared preferences.
-        val editor = sharedPreferences.edit()
-
-        // creating a new variable for gson.
-        val gson = Gson()
-        val gson2 = Gson()
-
-        // getting data from gson and storing it in a string.
-        val json = gson.toJson(kayitliCoinlers)
-        val json2 = gson2.toJson(stringsID)
-
-        // below line is to save data in shared
-        // prefs in the form of string.
-        editor.putString("listeler", json)
-        editor.putString("IDler", json2)
-
-        // below line is to apply changes
-        // and save data in shared prefs.
-        editor.apply()
+        viewModel.updateSavedCoinsList(kayitliCoinlers)
+        viewModel.updateIDs(stringsID)
     }
 
-    override fun onResume() {
-        updateData()
-        super.onResume()
-    }
-    //Alım sayısını guncellemek icin
-    private fun updateData(){
-        if (i != 0) {
-            val preferences: SharedPreferences = requireActivity().getSharedPreferences(
-                kayitliCoinlers[tiklananPosition].id, Context.MODE_PRIVATE
-            )
-            val isim = preferences.getString("coinAdi", "Eklemek için tıkla")
-            var hesapArrayList: java.util.ArrayList<Calculate> = java.util.ArrayList()
-            val gson = Gson()
-            val json = preferences.getString("hesaplar", null)
-            // below line is to get the type of our array list.
-            val type = object : TypeToken<java.util.ArrayList<Calculate>?>() {}.type
-            // in below line we are getting data from gson
-            // and saving it to our array list
-            json?.let {
-                hesapArrayList = gson.fromJson(it, type)
+    //guncellemeden sonra silinecek
+    private fun updateSavedCoinListNewQuantity() {
+        for (i in stringsID) {
+            if (!i.durum) {
+                var oldquantity = viewModel.getNewQuantity(i.id)
+                if (oldquantity.contains(" ")) {
+                    var splited = oldquantity.split(" ").toTypedArray()
+                    splited.first().apply {
+                        if (this != "Yeni") {
+                            viewModel.setNewQuantity(i.id, this)
+                            Toast.makeText(
+                                requireContext(),
+                                "${i.id} yeni adet guncellendi ${this}",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+
+                }
             }
-
-            val adet = hesapArrayList.size
-
-            kayitliCoinlers[tiklananPosition].adet = adet
-            kayitliCoinlers[tiklananPosition].isim = isim.toString()
-
-            saveData()
         }
-        i++
     }
 }

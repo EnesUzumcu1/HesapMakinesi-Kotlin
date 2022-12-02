@@ -42,17 +42,17 @@ class SavedCoinsDiffutilAdapter(private val listener: OnClickListenerSavedCoins)
             listener: OnClickListenerSavedCoins,
             position: Int
         ) {
-            binding.tvKayitliAdet.text = savedCoin.adet.toString() + " adet alım";
-            binding.tvKayitliCoinAdi.text = savedCoin.isim;
+            binding.tvKayitliAdet.text = String.format("%s adet alım",savedCoin.adet)
+            binding.tvKayitliCoinAdi.text = savedCoin.isim
 
-            binding.tvPosition.text = (position + 1).toString() + ")";
+            binding.tvPosition.text = String.format("%s)",position + 1)
 
             binding.btnSil.setOnClickListener {
-                listener.onItemClickedSavedCoins(savedCoin, position, 1)
+                listener.onItemClickedSavedCoinsDelete(savedCoin, position)
             }
 
             itemView.setOnClickListener {
-                listener.onItemClickedSavedCoins(savedCoin, position, 2);
+                listener.onItemClickedSavedCoinsDetail(savedCoin)
             }
         }
     }
@@ -62,6 +62,7 @@ class SavedCoinsDiffutilAdapter(private val listener: OnClickListenerSavedCoins)
     }
 
     interface OnClickListenerSavedCoins {
-        fun onItemClickedSavedCoins(savedCoins: SavedCoins, position: Int, islemID: Int)
+        fun onItemClickedSavedCoinsDetail(savedCoins: SavedCoins)
+        fun onItemClickedSavedCoinsDelete(savedCoins: SavedCoins, position: Int)
     }
 }

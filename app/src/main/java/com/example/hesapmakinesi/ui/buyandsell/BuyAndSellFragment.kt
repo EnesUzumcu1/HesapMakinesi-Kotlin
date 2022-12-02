@@ -1,26 +1,29 @@
-package com.example.hesapmakinesi.ui.calculateViewPager2
+package com.example.hesapmakinesi.ui.buyandsell
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.widget.ViewPager2
-import com.example.hesapmakinesi.databinding.FragmentCalculateBinding
-import com.example.hesapmakinesi.ui.calculateViewPager2.adapter.ViewPagerAdapter
+import com.example.hesapmakinesi.databinding.FragmentBuyandsellBinding
+import com.example.hesapmakinesi.ui.buyandsell.adapter.BuyAndSellAdapter
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayout.OnTabSelectedListener
+import dagger.hilt.android.AndroidEntryPoint
 
-class CalculateFragment : Fragment() {
-    private lateinit var binding: FragmentCalculateBinding
-    private lateinit var viewPagerAdapter: ViewPagerAdapter
+@AndroidEntryPoint
+class BuyAndSellFragment : Fragment() {
+    private lateinit var binding: FragmentBuyandsellBinding
+    private lateinit var buyAndSellAdapter: BuyAndSellAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = FragmentCalculateBinding.inflate(inflater, container, false)
+        binding = FragmentBuyandsellBinding.inflate(inflater, container, false)
         return (binding.root)
     }
 
@@ -46,8 +49,13 @@ class CalculateFragment : Fragment() {
     }
 
     private fun viewPagerTabLayout() {
-        viewPagerAdapter =
-            ViewPagerAdapter(requireActivity(), binding.tabLayout.tabCount, arguments)
-        binding.viewPager.adapter = viewPagerAdapter
+        buyAndSellAdapter =
+            BuyAndSellAdapter(
+                fragmentManager = childFragmentManager,
+                lifecycle = lifecycle,
+                numsOfTabs = binding.tabLayout.tabCount,
+                bundle = arguments
+            )
+        binding.viewPager.adapter = buyAndSellAdapter
     }
 }

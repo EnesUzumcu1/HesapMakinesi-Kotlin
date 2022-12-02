@@ -15,18 +15,8 @@
             app:destination="@id/calculateFragment" />
     </fragment>
     <fragment
-        android:id="@+id/buyFragment"
-        android:name="com.example.hesapmakinesi.ui.calculateViewPager2.buyandsell.BuyFragment"
-        android:label="fragment_buy"
-        tools:layout="@layout/fragment_buy" />
-    <fragment
         android:id="@+id/calculateFragment"
-        android:name="com.example.hesapmakinesi.ui.calculateViewPager2.CalculateFragment"
+        android:name="com.example.hesapmakinesi.ui.buyandsell.BuyAndSellFragment"
         android:label="fragment_calculate"
-        tools:layout="@layout/fragment_calculate" />
-    <fragment
-        android:id="@+id/sellFragment2"
-        android:name="com.example.hesapmakinesi.ui.calculateViewPager2.buyandsell.SellFragment"
-        android:label="fragment_sell"
-        tools:layout="@layout/fragment_sell" />
+        tools:layout="@layout/fragment_buyandsell" />
 </navigation>

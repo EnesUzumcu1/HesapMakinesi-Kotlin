@@ -16,7 +16,7 @@
     </include>
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/listeRecyclerview"
+        android:id="@+id/rvSavedCoinsList"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:padding="10dp"
@@ -31,7 +31,7 @@
         tools:listitem="@layout/list_item_kayitli_coinler" />
 
     <TextView
-        android:id="@+id/textViewBosUyarisi"
+        android:id="@+id/tvEmptyList"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
@@ -46,7 +46,7 @@
 
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/yeniCoinEkleButton"
+        android:id="@+id/btnAddNewCoin"
         android:layout_width="50dp"
         android:layout_height="50dp"
         android:layout_marginEnd="20dp"
