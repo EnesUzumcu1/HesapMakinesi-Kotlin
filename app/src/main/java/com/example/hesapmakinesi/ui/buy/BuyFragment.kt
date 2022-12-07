@@ -108,38 +108,6 @@ class BuyFragment : Fragment(), SavedDatasAdapter.OnClickListener,
 
         binding.toolbar.coinAdi.setOnClickListener {
             viewModel.getCoinList()
-            lifecycleScope.launchWhenResumed {
-                launch {
-                    viewModel.uiEvent.collect {
-                        when (it) {
-                            is BuyViewEvent.ShowData -> {
-                                coinDetailJob.cancel()
-                                showDialogAlertCoin(it.data)
-                            }
-                            is BuyViewEvent.ShowError -> {
-                                Toast.makeText(
-                                    requireContext(),
-                                    it.error.toString(),
-                                    Toast.LENGTH_SHORT
-                                )
-                                    .show()
-                            }
-                        }
-                    }
-                }
-                launch {
-                    viewModel.uiState.collect {
-                        when (it) {
-                            is BuyUiState.Loading -> {
-                                loadingProgressBar.show()
-                            }
-                            is BuyUiState.Empty -> {
-                                loadingProgressBar.cancel()
-                            }
-                        }
-                    }
-                }
-            }
         }
 
         lifecycleScope.launchWhenResumed {
@@ -164,6 +132,36 @@ class BuyFragment : Fragment(), SavedDatasAdapter.OnClickListener,
                                 Constants.PROFIT_COULD_NOT_BE_CALCULATED_ERROR,
                                 Toast.LENGTH_SHORT
                             ).show()
+                        }
+                    }
+                }
+            }
+            launch {
+                viewModel.uiEvent.collect {
+                    when (it) {
+                        is BuyViewEvent.ShowData -> {
+                            coinDetailJob.cancel()
+                            showDialogAlertCoin(it.data)
+                        }
+                        is BuyViewEvent.ShowError -> {
+                            Toast.makeText(
+                                requireContext(),
+                                it.error.toString(),
+                                Toast.LENGTH_SHORT
+                            )
+                                .show()
+                        }
+                    }
+                }
+            }
+            launch {
+                viewModel.uiState.collect {
+                    when (it) {
+                        is BuyUiState.Loading -> {
+                            loadingProgressBar.show()
+                        }
+                        is BuyUiState.Empty -> {
+                            loadingProgressBar.cancel()
                         }
                     }
                 }

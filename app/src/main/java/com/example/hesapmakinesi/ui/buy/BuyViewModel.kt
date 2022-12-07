@@ -6,9 +6,7 @@ import com.example.hesapmakinesi.data.local.SharedPreferencesManager
 import com.example.hesapmakinesi.data.model.Order
 import com.example.hesapmakinesi.data.model.CoinsResponseItem
 import com.example.hesapmakinesi.data.model.SavedCoins
-import com.example.hesapmakinesi.domain.usecase.buy.BuyUseCase
-import com.example.hesapmakinesi.domain.usecase.buy.BuyUseCaseParams
-import com.example.hesapmakinesi.domain.usecase.buy.BuyUseCaseState
+import com.example.hesapmakinesi.domain.usecase.buy.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -32,16 +30,16 @@ class BuyViewModel @Inject constructor(
 
     fun getCoinList() {
         viewModelScope.launch {
-            buyUseCase.invoke(BuyUseCaseParams(1, "")).collect {
+            buyUseCase.getCoinList.invoke().collect {
                 when (it) {
-                    is BuyUseCaseState.Loading -> {
+                    is GetCoinListState.Loading -> {
                         _uiState.value = BuyUiState.Loading
                     }
-                    is BuyUseCaseState.Error -> {
+                    is GetCoinListState.Error -> {
                         _uiState.value = BuyUiState.Empty
                         _uiEvent.emit(BuyViewEvent.ShowError(it.error))
                     }
-                    is BuyUseCaseState.Success -> {
+                    is GetCoinListState.Success -> {
                         _uiState.value = BuyUiState.Empty
 
                         it.data.filter {
@@ -59,16 +57,15 @@ class BuyViewModel @Inject constructor(
 
     fun getCoinDetail(symbol: String) {
         viewModelScope.launch {
-
-            buyUseCase.invoke(BuyUseCaseParams(2, symbol)).collect {
+            buyUseCase.getCoinDetail.invoke(symbol).collect {
                 when (it) {
-                    is BuyUseCaseState.Loading -> {
+                    is GetCoinDetailState.Loading -> {
                     }
-                    is BuyUseCaseState.Error -> {
+                    is GetCoinDetailState.Error -> {
                         _uiEventDetail.emit(BuyViewEventCoinDetail.ShowError(it.error))
                     }
-                    is BuyUseCaseState.Success -> {
-                        _uiEventDetail.emit(BuyViewEventCoinDetail.ShowData(it.data[0]))
+                    is GetCoinDetailState.Success -> {
+                        _uiEventDetail.emit(BuyViewEventCoinDetail.ShowData(it.data))
                     }
                 }
             }
