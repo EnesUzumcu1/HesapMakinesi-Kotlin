@@ -19,8 +19,6 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.NavController
-import androidx.navigation.fragment.findNavController
 import com.example.hesapmakinesi.R
 import com.example.hesapmakinesi.data.model.Order
 import com.example.hesapmakinesi.data.model.CoinsResponseItem
@@ -44,7 +42,6 @@ import kotlin.collections.ArrayList
 class BuyFragment : Fragment(), SavedDatasAdapter.OnClickListener,
     CoinsAdapter.OnClickListener {
     private lateinit var binding: FragmentBuyBinding
-    private lateinit var navController: NavController
 
     private val viewModel by viewModels<BuyViewModel>()
 
@@ -179,7 +176,6 @@ class BuyFragment : Fragment(), SavedDatasAdapter.OnClickListener,
     }
 
     private fun atamalar() {
-        navController = findNavController()
         loadingProgressBar = LoadingProgressBar(requireContext())
         arguments?.run {
             val coinAdi = this.getString(Constants.SEND_PREF_NAME)
