@@ -18,11 +18,13 @@ import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import com.example.hesapmakinesi.R
 import com.example.hesapmakinesi.data.model.Order
 import com.example.hesapmakinesi.data.model.CoinsResponseItem
-import com.example.hesapmakinesi.databinding.CustomDialogBoxBinding
 import com.example.hesapmakinesi.databinding.CustomListBinding
 import com.example.hesapmakinesi.databinding.FragmentBuyBinding
 import com.example.hesapmakinesi.ui.buy.adapter.CoinsAdapter
@@ -57,7 +59,6 @@ class BuyFragment : Fragment(), SavedDatasAdapter.OnClickListener,
     private lateinit var adapterOrders: SavedDatasAdapter
     private lateinit var adapterCoinsList: CoinsAdapter
     private lateinit var coinName: String
-    private lateinit var preferencesName: String
 
     private lateinit var coinDetailJob: Job
 
@@ -85,7 +86,7 @@ class BuyFragment : Fragment(), SavedDatasAdapter.OnClickListener,
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         atamalar()
-        loadData(preferencesName)
+        loadData()
         buildRecyclerView()
         averageCalculate()
         decimalFormatUpdate()
@@ -100,7 +101,7 @@ class BuyFragment : Fragment(), SavedDatasAdapter.OnClickListener,
         }
 
         binding.tvYeniAdet.setOnClickListener {
-            showDialogAlert()
+            findNavController().navigate(R.id.addOrderDialogFragment)
         }
 
         binding.toolbar.coinAdi.setOnClickListener {
@@ -164,6 +165,22 @@ class BuyFragment : Fragment(), SavedDatasAdapter.OnClickListener,
                 }
             }
         }
+
+        val currentFragment = findNavController().getBackStackEntry(R.id.calculateFragment)
+        val dialogObserver = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME && currentFragment.savedStateHandle.contains("newAmount")) {
+                getNewAmountFromDialog(currentFragment.savedStateHandle["newAmount"]!!)
+            }
+        }
+
+        val dialogLifecycle = currentFragment.lifecycle
+        dialogLifecycle.addObserver(dialogObserver)
+
+        viewLifecycleOwner.lifecycle.addObserver(LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_DESTROY) {
+                dialogLifecycle.removeObserver(dialogObserver)
+            }
+        })
     }
 
     private fun getCoinDetail(): Job {
@@ -180,7 +197,7 @@ class BuyFragment : Fragment(), SavedDatasAdapter.OnClickListener,
         arguments?.run {
             val coinAdi = this.getString(Constants.SEND_PREF_NAME)
             coinAdi?.let {
-                preferencesName = it
+                viewModel.preferencesName = it
             }
         }
         ordersArrayList = ArrayList()
@@ -312,7 +329,7 @@ class BuyFragment : Fragment(), SavedDatasAdapter.OnClickListener,
         averageCalculate()
         calculatePercentage(coinPrice)
         newAverageCalculate()
-        saveData(preferencesName)
+        saveData()
         binding.etAdet.setText("")
         binding.etFiyat.setText("")
     }
@@ -324,30 +341,19 @@ class BuyFragment : Fragment(), SavedDatasAdapter.OnClickListener,
         binding.recyclerview.smoothScrollToPosition(adapterOrders.itemCount)
     }
 
-    private fun showDialogAlert() {
-        val bindingDialogBox: CustomDialogBoxBinding =
-            CustomDialogBoxBinding.inflate(layoutInflater)
-        dialogNewAmount.setContentView(bindingDialogBox.root)
-        bindingDialogBox.btnKaydet.setOnClickListener {
-            bindingDialogBox.tvYeniAdet.text.toString().apply {
-                if (this.isNotEmpty() && (this == ".").not()) {
-                    if (this.toBigDecimal() > BigDecimal(0)) {
-                        newAmount = this.toBigDecimal()
-                        newAverageCalculate()
-                        calculatePercentage(coinPrice)
-                    } else {
-                        newAmount = BigDecimal(0)
-                        newAverageReset()
-                    }
-                    saveData(preferencesName)
-                }
+    private fun getNewAmountFromDialog(inputAmount: String) {
+        if (inputAmount.isNotEmpty() && (inputAmount == ".").not()) {
+            if (inputAmount.toBigDecimal() > BigDecimal(0)) {
+                newAmount = inputAmount.toBigDecimal()
+                newAverageCalculate()
+                calculatePercentage(coinPrice)
+            } else {
+                newAmount = BigDecimal(0)
+                newAverageReset()
             }
-            dialogNewAmount.dismiss()
+            saveData()
         }
-        dialogNewAmount.window!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-        dialogNewAmount.show()
     }
-
     private fun newAverageReset() {
         binding.tvYeniAdet.text = "0 (0)"
         binding.tvKarYuzdeKarDahil.text = "% 0"
@@ -398,11 +404,11 @@ class BuyFragment : Fragment(), SavedDatasAdapter.OnClickListener,
         dialogCoinsList.show()
     }
 
-    private fun loadData(preferencesName: String) {
-        viewModel.getCalculates(preferencesName).apply {
+    private fun loadData() {
+        viewModel.getCalculates().apply {
             ordersArrayList = this
         }
-        viewModel.getNewQuantity(preferencesName).apply {
+        viewModel.getNewQuantity().apply {
 
             if (this == Constants.DEFAULT_NEW_QUANTITY_TEXT) {
                 binding.tvYeniAdet.text = this
@@ -413,19 +419,19 @@ class BuyFragment : Fragment(), SavedDatasAdapter.OnClickListener,
                     String.format("%s (0)", dfPriceAndAmount.format(newAmount))
             }
         }
-        viewModel.getCoinName(preferencesName).apply {
+        viewModel.getCoinName().apply {
             coinName = this
             binding.toolbar.coinAdi.text = coinName
         }
     }
 
-    private fun saveData(preferencesName: String) {
-        viewModel.setCalculates(preferencesName, ordersArrayList)
+    private fun saveData() {
+        viewModel.setCalculates(ordersArrayList)
         if (newAmount >= BigDecimal(0)) {
-            viewModel.setNewQuantity(preferencesName, newAmount.toString())
+            viewModel.setNewQuantity(newAmount.toString())
         }
         if (binding.toolbar.coinAdi.text.toString() != "") {
-            viewModel.setCoinName(preferencesName, binding.toolbar.coinAdi.text.toString())
+            viewModel.setCoinName(binding.toolbar.coinAdi.text.toString())
         }
         updateSavedCoinList()
     }
@@ -519,7 +525,7 @@ class BuyFragment : Fragment(), SavedDatasAdapter.OnClickListener,
             String.format("%s $", dfPriceAndAmount.format(coins.price?.toDouble()))
         coinName = coins.symbol.toString()
 
-        saveData(preferencesName)
+        saveData()
 
         adapterCoinsList.filter.filter("")
 
@@ -530,7 +536,7 @@ class BuyFragment : Fragment(), SavedDatasAdapter.OnClickListener,
         adapterOrders.removeItem(position)
         averageCalculate()
         calculatePercentage(coinPrice)
-        saveData(preferencesName)
+        saveData()
         if (adapterOrders.itemCount == 0) {
             newAverageReset()
         } else {
@@ -554,7 +560,7 @@ class BuyFragment : Fragment(), SavedDatasAdapter.OnClickListener,
         var previousList = viewModel.getSavedCoinsList()
 
         previousList.first {
-            it.id == preferencesName
+            it.id == viewModel.preferencesName
         }.apply {
             this.adet = adapterOrders.itemCount
             this.isim = binding.toolbar.coinAdi.text.toString()

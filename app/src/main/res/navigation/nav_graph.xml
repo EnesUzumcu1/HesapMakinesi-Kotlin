@@ -19,4 +19,13 @@
         android:name="com.example.hesapmakinesi.ui.buyandsell.BuyAndSellFragment"
         android:label="fragment_calculate"
         tools:layout="@layout/fragment_buyandsell" />
+    <dialog
+        android:id="@+id/addOrderDialogFragment"
+        android:name="com.example.hesapmakinesi.ui.newamount.NewAmountDialogFragment"
+        android:label="AddOrderDialogFragment" />
+    <fragment
+        android:id="@+id/buyFragment"
+        android:name="com.example.hesapmakinesi.ui.buy.BuyFragment"
+        android:label="fragment_buy"
+        tools:layout="@layout/fragment_buy" />
 </navigation>

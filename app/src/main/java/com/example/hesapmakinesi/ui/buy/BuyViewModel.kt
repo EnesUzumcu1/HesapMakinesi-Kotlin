@@ -16,7 +16,8 @@ import javax.inject.Inject
 @HiltViewModel
 class BuyViewModel @Inject constructor(
     private val buyUseCase: BuyUseCase,
-    private val sharedPreferencesManager: SharedPreferencesManager
+    private val sharedPreferencesManager: SharedPreferencesManager,
+    var preferencesName: String
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<BuyUiState>(BuyUiState.Empty)
@@ -72,28 +73,35 @@ class BuyViewModel @Inject constructor(
         }
     }
 
-    fun getCalculates(preferencesName: String): ArrayList<Order>{
+    fun getCalculates(): ArrayList<Order> {
         return sharedPreferencesManager.getCalculatesBuy(preferencesName)
     }
-    fun getNewQuantity(preferencesName: String):String{
+
+    fun getNewQuantity(): String {
         return sharedPreferencesManager.getNewQuantity(preferencesName)
     }
-    fun getCoinName(preferencesName: String):String{
+
+    fun getCoinName(): String {
         return sharedPreferencesManager.getCoinName(preferencesName)
     }
-    fun setCalculates(preferencesName: String,hesapArrayList: ArrayList<Order>){
-        sharedPreferencesManager.setCalculatesBuy(preferencesName,hesapArrayList)
+
+    fun setCalculates(hesapArrayList: ArrayList<Order>) {
+        sharedPreferencesManager.setCalculatesBuy(preferencesName, hesapArrayList)
     }
-    fun setNewQuantity(preferencesName: String,newQuantity: String){
-        sharedPreferencesManager.setNewQuantity(preferencesName,newQuantity)
+
+    fun setNewQuantity(newQuantity: String) {
+        sharedPreferencesManager.setNewQuantity(preferencesName, newQuantity)
     }
-    fun setCoinName(preferencesName: String,coinName:String){
-        sharedPreferencesManager.setCoinName(preferencesName,coinName)
+
+    fun setCoinName(coinName: String) {
+        sharedPreferencesManager.setCoinName(preferencesName, coinName)
     }
+
     //update recyclerview item in savedCoinFragment
     fun getSavedCoinsList(): ArrayList<SavedCoins> {
         return sharedPreferencesManager.getSavedCoins()
     }
+
     fun updateSavedCoinsList(savedCoinsList: java.util.ArrayList<SavedCoins>) {
         sharedPreferencesManager.setSavedCoins(savedCoinsList)
     }
@@ -103,6 +111,7 @@ sealed class BuyViewEvent {
     class ShowData(val data: MutableList<CoinsResponseItem>) : BuyViewEvent()
     class ShowError(val error: String?) : BuyViewEvent()
 }
+
 sealed class BuyViewEventCoinDetail {
     class ShowData(val data: CoinsResponseItem) : BuyViewEventCoinDetail()
     class ShowError(val error: String?) : BuyViewEventCoinDetail()
