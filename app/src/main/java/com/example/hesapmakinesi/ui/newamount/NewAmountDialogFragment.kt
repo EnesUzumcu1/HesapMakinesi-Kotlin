@@ -7,6 +7,7 @@ import android.os.Bundle
 import androidx.fragment.app.DialogFragment
 import androidx.navigation.fragment.findNavController
 import com.example.hesapmakinesi.databinding.CustomDialogBoxBinding
+import com.example.hesapmakinesi.utils.Constants
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -19,7 +20,7 @@ class NewAmountDialogFragment : DialogFragment() {
             this.setContentView(bindingDialogBox.root)
             bindingDialogBox.btnSave.setOnClickListener{
                 bindingDialogBox.tvNewAmount.text.toString().apply {
-                    findNavController().previousBackStackEntry?.savedStateHandle?.set("newAmount",this)
+                    findNavController().previousBackStackEntry?.savedStateHandle?.set(Constants.SAVED_STATE_HANDLE_KEY_NEW_AMOUNT,this)
                 }
                 this.dismiss()
             }

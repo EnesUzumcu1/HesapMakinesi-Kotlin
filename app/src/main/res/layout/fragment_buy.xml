@@ -15,47 +15,14 @@
 
     </include>
 
-    <LinearLayout
-        android:id="@+id/LinearLayoutKapsayici"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/toolbar">
-
-        <EditText
-            android:id="@+id/etFiyat"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:ems="10"
-            android:hint="Fiyat"
-            android:inputType="numberDecimal"
-            android:maxLength="15"
-            tools:ignore="TouchTargetSizeCheck" />
-
-        <EditText
-            android:id="@+id/etAdet"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:ems="10"
-            android:hint="Adet"
-            android:inputType="numberDecimal"
-            android:maxLength="15"
-            tools:ignore="TouchTargetSizeCheck" />
-    </LinearLayout>
-
     <Button
         android:id="@+id/btnEkle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
         android:text="Ekle"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/LinearLayoutKapsayici" />
+        app:layout_constraintTop_toBottomOf="@id/toolbar" />
 
 
     <LinearLayout

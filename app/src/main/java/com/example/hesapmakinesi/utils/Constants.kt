@@ -50,5 +50,8 @@ class Constants {
         const val WRONG_INPUT_ERROR = "Kabul edilmeyen değer"
         const val NO_INTERNET_ERROR = "İnternet bağlantısı bulunamadı!"
         const val PROFIT_COULD_NOT_BE_CALCULATED_ERROR = "Kâr oranı hesaplanması için internet bağlantısı gerekir"
+
+        const val SAVED_STATE_HANDLE_KEY_ORDER = "order"
+        const val SAVED_STATE_HANDLE_KEY_NEW_AMOUNT = "newAmount"
     }
 }

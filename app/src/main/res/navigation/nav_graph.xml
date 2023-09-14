@@ -20,7 +20,7 @@
         android:label="fragment_calculate"
         tools:layout="@layout/fragment_buyandsell" />
     <dialog
-        android:id="@+id/addOrderDialogFragment"
+        android:id="@+id/newAmountDialogFragment"
         android:name="com.example.hesapmakinesi.ui.newamount.NewAmountDialogFragment"
         android:label="AddOrderDialogFragment" />
     <fragment
@@ -28,4 +28,8 @@
         android:name="com.example.hesapmakinesi.ui.buy.BuyFragment"
         android:label="fragment_buy"
         tools:layout="@layout/fragment_buy" />
+    <dialog
+        android:id="@+id/addOrderDialogFragment"
+        android:name="com.example.hesapmakinesi.ui.addorder.AddOrderDialogFragment"
+        android:label="AddOrderDialogFragment" />
 </navigation>

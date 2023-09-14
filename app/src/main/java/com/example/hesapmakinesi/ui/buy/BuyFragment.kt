@@ -11,7 +11,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
 import android.widget.TextView
 import androidx.appcompat.widget.SearchView
 import android.widget.Toast
@@ -93,15 +92,11 @@ class BuyFragment : Fragment(), SavedDatasAdapter.OnClickListener,
         newAverageCalculate()
 
         binding.btnEkle.setOnClickListener {
-            if (inputCheck(binding.etAdet) && inputCheck(binding.etFiyat)) {
-                addOrder()
-            } else {
-                Toast.makeText(context, Constants.WRONG_INPUT_ERROR, Toast.LENGTH_SHORT).show()
-            }
+            findNavController().navigate(R.id.addOrderDialogFragment)
         }
 
         binding.tvYeniAdet.setOnClickListener {
-            findNavController().navigate(R.id.addOrderDialogFragment)
+            findNavController().navigate(R.id.newAmountDialogFragment)
         }
 
         binding.toolbar.coinAdi.setOnClickListener {
@@ -168,8 +163,20 @@ class BuyFragment : Fragment(), SavedDatasAdapter.OnClickListener,
 
         val currentFragment = findNavController().getBackStackEntry(R.id.calculateFragment)
         val dialogObserver = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME && currentFragment.savedStateHandle.contains("newAmount")) {
-                getNewAmountFromDialog(currentFragment.savedStateHandle["newAmount"]!!)
+            if (event == Lifecycle.Event.ON_RESUME && currentFragment.savedStateHandle.contains(
+                    Constants.SAVED_STATE_HANDLE_KEY_NEW_AMOUNT
+                )
+            ) {
+                getNewAmountFromDialog(currentFragment.savedStateHandle[Constants.SAVED_STATE_HANDLE_KEY_NEW_AMOUNT]!!)
+            } else if (event == Lifecycle.Event.ON_RESUME && currentFragment.savedStateHandle.contains(
+                    Constants.SAVED_STATE_HANDLE_KEY_ORDER
+                )
+            ) {
+                val mutableList: MutableList<String>? =
+                    currentFragment.savedStateHandle[Constants.SAVED_STATE_HANDLE_KEY_ORDER]
+                if (mutableList.isNullOrEmpty().not() && mutableList?.size == 2) addOrder(
+                    mutableList[0], mutableList[1]
+                )
             }
         }
 
@@ -306,21 +313,13 @@ class BuyFragment : Fragment(), SavedDatasAdapter.OnClickListener,
         }
     }
 
-    private fun inputCheck(editText: EditText): Boolean {
-        return if (editText.text.trim().isEmpty()) false
-        else {
-            if (editText.text.trim().toString() == ".") false
-            else {
-                editText.text.trim().toString().toBigDecimal() > BigDecimal(0)
+    private fun addOrder(amount: String?, price: String?) {
+        amount?.let { safeAmount ->
+            price?.let { safePrice ->
+                ordersArrayList.add(Order(safeAmount.toBigDecimal(), safePrice.toBigDecimal()))
+                afterItemAdded()
             }
         }
-    }
-
-    private fun addOrder() {
-        val adet = binding.etAdet.text.toString().toBigDecimal()
-        val fiyat = binding.etFiyat.text.toString().toBigDecimal()
-        ordersArrayList.add(Order(adet, fiyat))
-        afterItemAdded()
     }
 
     private fun afterItemAdded() {
@@ -330,8 +329,6 @@ class BuyFragment : Fragment(), SavedDatasAdapter.OnClickListener,
         calculatePercentage(coinPrice)
         newAverageCalculate()
         saveData()
-        binding.etAdet.setText("")
-        binding.etFiyat.setText("")
     }
 
     private fun buildRecyclerView() {
@@ -354,6 +351,7 @@ class BuyFragment : Fragment(), SavedDatasAdapter.OnClickListener,
             saveData()
         }
     }
+
     private fun newAverageReset() {
         binding.tvYeniAdet.text = "0 (0)"
         binding.tvKarYuzdeKarDahil.text = "% 0"
