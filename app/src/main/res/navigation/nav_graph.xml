@@ -32,4 +32,8 @@
         android:id="@+id/addOrderDialogFragment"
         android:name="com.example.hesapmakinesi.ui.addorder.AddOrderDialogFragment"
         android:label="AddOrderDialogFragment" />
+    <dialog
+        android:id="@+id/orderListBottomSheet"
+        android:name="com.example.hesapmakinesi.ui.orderlist.OrderListBottomSheet"
+        android:label="OrderListBottomSheet" />
 </navigation>

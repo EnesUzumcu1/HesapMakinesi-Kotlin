@@ -28,7 +28,6 @@ import com.example.hesapmakinesi.databinding.CustomListBinding
 import com.example.hesapmakinesi.databinding.FragmentBuyBinding
 import com.example.hesapmakinesi.ui.buy.adapter.CoinsAdapter
 import com.example.hesapmakinesi.utils.LoadingProgressBar
-import com.example.hesapmakinesi.ui.sell.adapter.SavedDatasAdapter
 import com.example.hesapmakinesi.utils.Constants
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
@@ -40,7 +39,7 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 @AndroidEntryPoint
-class BuyFragment : Fragment(), SavedDatasAdapter.OnClickListener,
+class BuyFragment : Fragment(),
     CoinsAdapter.OnClickListener {
     private lateinit var binding: FragmentBuyBinding
 
@@ -49,13 +48,11 @@ class BuyFragment : Fragment(), SavedDatasAdapter.OnClickListener,
     private lateinit var loadingProgressBar: LoadingProgressBar
 
     private lateinit var ordersArrayList: ArrayList<Order>
-    private lateinit var dialogNewAmount: Dialog
     private lateinit var dialogCoinsList: Dialog
     private lateinit var dfPriceAndAmount: DecimalFormat
 
     private lateinit var dfPercentage: DecimalFormat
     private lateinit var otherSymbols: DecimalFormatSymbols
-    private lateinit var adapterOrders: SavedDatasAdapter
     private lateinit var adapterCoinsList: CoinsAdapter
     private lateinit var coinName: String
 
@@ -86,13 +83,20 @@ class BuyFragment : Fragment(), SavedDatasAdapter.OnClickListener,
         super.onViewCreated(view, savedInstanceState)
         atamalar()
         loadData()
-        buildRecyclerView()
         averageCalculate()
         decimalFormatUpdate()
         newAverageCalculate()
+        updateOrderListSize()
 
         binding.btnEkle.setOnClickListener {
             findNavController().navigate(R.id.addOrderDialogFragment)
+        }
+
+        binding.cvShowOrder.setOnClickListener {
+            findNavController().navigate(R.id.orderListBottomSheet, Bundle().apply {
+                val value: String = viewModel.preferencesName
+                putString(Constants.SEND_PREF_NAME, value)
+            })
         }
 
         binding.tvYeniAdet.setOnClickListener {
@@ -174,9 +178,25 @@ class BuyFragment : Fragment(), SavedDatasAdapter.OnClickListener,
             ) {
                 val mutableList: MutableList<String>? =
                     currentFragment.savedStateHandle[Constants.SAVED_STATE_HANDLE_KEY_ORDER]
+                currentFragment.savedStateHandle[Constants.SAVED_STATE_HANDLE_KEY_ORDER] = null
                 if (mutableList.isNullOrEmpty().not() && mutableList?.size == 2) addOrder(
                     mutableList[0], mutableList[1]
                 )
+            }
+
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.getCalculates().apply {
+                    ordersArrayList = this
+                }
+                averageCalculate()
+                calculatePercentage(coinPrice)
+                if (viewModel.getCalculates().size == 0) {
+                    newAverageReset()
+                } else {
+                    newAverageCalculate()
+                }
+                updateSavedCoinList()
+                updateOrderListSize()
             }
         }
 
@@ -219,7 +239,6 @@ class BuyFragment : Fragment(), SavedDatasAdapter.OnClickListener,
         dfPriceAndAmount = DecimalFormat("#.########", otherSymbols)
         dfAverage = DecimalFormat("#.##", otherSymbols)
         dfPercentage = DecimalFormat("#.##", otherSymbols)
-        dialogNewAmount = Dialog(requireContext())
         dialogCoinsList = Dialog(requireContext())
         if (!isInternetAvailable()) {
             Toast.makeText(context, Constants.NO_INTERNET_ERROR, Toast.LENGTH_SHORT).show()
@@ -323,19 +342,10 @@ class BuyFragment : Fragment(), SavedDatasAdapter.OnClickListener,
     }
 
     private fun afterItemAdded() {
-        adapterOrders.notifyItemInserted(adapterOrders.itemCount - 1)
-        binding.recyclerview.smoothScrollToPosition(adapterOrders.itemCount - 1)
         averageCalculate()
         calculatePercentage(coinPrice)
         newAverageCalculate()
         saveData()
-    }
-
-    private fun buildRecyclerView() {
-        adapterOrders = SavedDatasAdapter(ordersArrayList, this)
-        binding.recyclerview.setHasFixedSize(true)
-        binding.recyclerview.adapter = adapterOrders
-        binding.recyclerview.smoothScrollToPosition(adapterOrders.itemCount)
     }
 
     private fun getNewAmountFromDialog(inputAmount: String) {
@@ -530,18 +540,6 @@ class BuyFragment : Fragment(), SavedDatasAdapter.OnClickListener,
         dialogCoinsList.dismiss()
     }
 
-    override fun onItemClickedDelete(position: Int) {
-        adapterOrders.removeItem(position)
-        averageCalculate()
-        calculatePercentage(coinPrice)
-        saveData()
-        if (adapterOrders.itemCount == 0) {
-            newAverageReset()
-        } else {
-            newAverageCalculate()
-        }
-    }
-
     override fun onResume() {
         super.onResume()
         //start the loop
@@ -560,9 +558,15 @@ class BuyFragment : Fragment(), SavedDatasAdapter.OnClickListener,
         previousList.first {
             it.id == viewModel.preferencesName
         }.apply {
-            this.adet = adapterOrders.itemCount
+            this.adet = viewModel.getCalculates().size
             this.isim = binding.toolbar.coinAdi.text.toString()
         }
         viewModel.updateSavedCoinsList(previousList)
+    }
+
+    private fun updateOrderListSize() {
+        viewModel.getCalculates().size.apply {
+            binding.tvOrderListSize.text = "${this} adet emir var. Detay için tıkla."
+        }
     }
 }
