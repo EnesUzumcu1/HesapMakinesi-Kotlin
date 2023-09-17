@@ -36,4 +36,8 @@
         android:id="@+id/orderListBottomSheet"
         android:name="com.example.hesapmakinesi.ui.orderlist.OrderListBottomSheet"
         android:label="OrderListBottomSheet" />
+    <dialog
+        android:id="@+id/coinListDialogFragment"
+        android:name="com.example.hesapmakinesi.ui.coinlist.CoinListDialogFragment"
+        android:label="CoinListDialogFragment" />
 </navigation>

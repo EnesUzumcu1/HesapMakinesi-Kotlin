@@ -1,9 +1,7 @@
 package com.example.hesapmakinesi.ui.buy
 
-import android.app.Dialog
 import android.content.Context
 import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
@@ -12,22 +10,18 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import androidx.appcompat.widget.SearchView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.Lifecycle.Event.*
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.hesapmakinesi.R
 import com.example.hesapmakinesi.data.model.Order
 import com.example.hesapmakinesi.data.model.CoinsResponseItem
-import com.example.hesapmakinesi.databinding.CustomListBinding
 import com.example.hesapmakinesi.databinding.FragmentBuyBinding
-import com.example.hesapmakinesi.ui.buy.adapter.CoinsAdapter
-import com.example.hesapmakinesi.utils.LoadingProgressBar
 import com.example.hesapmakinesi.utils.Constants
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
@@ -39,21 +33,16 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 @AndroidEntryPoint
-class BuyFragment : Fragment(),
-    CoinsAdapter.OnClickListener {
+class BuyFragment : Fragment() {
     private lateinit var binding: FragmentBuyBinding
 
     private val viewModel by viewModels<BuyViewModel>()
 
-    private lateinit var loadingProgressBar: LoadingProgressBar
-
     private lateinit var ordersArrayList: ArrayList<Order>
-    private lateinit var dialogCoinsList: Dialog
     private lateinit var dfPriceAndAmount: DecimalFormat
 
     private lateinit var dfPercentage: DecimalFormat
     private lateinit var otherSymbols: DecimalFormatSymbols
-    private lateinit var adapterCoinsList: CoinsAdapter
     private lateinit var coinName: String
 
     private lateinit var coinDetailJob: Job
@@ -87,7 +76,9 @@ class BuyFragment : Fragment(),
         decimalFormatUpdate()
         newAverageCalculate()
         updateOrderListSize()
-
+        if (this::coinDetailJob.isInitialized.not()) {
+            coinDetailJob = getCoinDetail()
+        }
         binding.btnEkle.setOnClickListener {
             findNavController().navigate(R.id.addOrderDialogFragment)
         }
@@ -104,7 +95,7 @@ class BuyFragment : Fragment(),
         }
 
         binding.toolbar.coinAdi.setOnClickListener {
-            viewModel.getCoinList()
+            findNavController().navigate(R.id.coinListDialogFragment)
         }
 
         lifecycleScope.launchWhenResumed {
@@ -133,70 +124,42 @@ class BuyFragment : Fragment(),
                     }
                 }
             }
-            launch {
-                viewModel.uiEvent.collect {
-                    when (it) {
-                        is BuyViewEvent.ShowData -> {
-                            coinDetailJob.cancel()
-                            showDialogAlertCoin(it.data)
-                        }
-                        is BuyViewEvent.ShowError -> {
-                            Toast.makeText(
-                                requireContext(),
-                                it.error.toString(),
-                                Toast.LENGTH_SHORT
-                            )
-                                .show()
-                        }
-                    }
-                }
-            }
-            launch {
-                viewModel.uiState.collect {
-                    when (it) {
-                        is BuyUiState.Loading -> {
-                            loadingProgressBar.show()
-                        }
-                        is BuyUiState.Empty -> {
-                            loadingProgressBar.cancel()
-                        }
-                    }
-                }
-            }
         }
 
         val currentFragment = findNavController().getBackStackEntry(R.id.calculateFragment)
         val dialogObserver = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME && currentFragment.savedStateHandle.contains(
-                    Constants.SAVED_STATE_HANDLE_KEY_NEW_AMOUNT
-                )
-            ) {
-                getNewAmountFromDialog(currentFragment.savedStateHandle[Constants.SAVED_STATE_HANDLE_KEY_NEW_AMOUNT]!!)
-            } else if (event == Lifecycle.Event.ON_RESUME && currentFragment.savedStateHandle.contains(
-                    Constants.SAVED_STATE_HANDLE_KEY_ORDER
-                )
-            ) {
-                val mutableList: MutableList<String>? =
-                    currentFragment.savedStateHandle[Constants.SAVED_STATE_HANDLE_KEY_ORDER]
-                currentFragment.savedStateHandle[Constants.SAVED_STATE_HANDLE_KEY_ORDER] = null
-                if (mutableList.isNullOrEmpty().not() && mutableList?.size == 2) addOrder(
-                    mutableList[0], mutableList[1]
-                )
-            }
 
-            if (event == Lifecycle.Event.ON_RESUME) {
-                viewModel.getCalculates().apply {
-                    ordersArrayList = this
+            when (event) {
+                ON_RESUME -> {
+                    if (currentFragment.savedStateHandle.contains(
+                            Constants.SAVED_STATE_HANDLE_KEY_NEW_AMOUNT
+                        )
+                    ) {
+                        getNewAmountFromDialog(currentFragment.savedStateHandle[Constants.SAVED_STATE_HANDLE_KEY_NEW_AMOUNT]!!)
+                    } else if (currentFragment.savedStateHandle.contains(
+                            Constants.SAVED_STATE_HANDLE_KEY_ORDER
+                        )
+                    ) {
+                        val mutableList: MutableList<String>? =
+                            currentFragment.savedStateHandle[Constants.SAVED_STATE_HANDLE_KEY_ORDER]
+                        currentFragment.savedStateHandle[Constants.SAVED_STATE_HANDLE_KEY_ORDER] =
+                            null
+                        if (mutableList.isNullOrEmpty().not() && mutableList?.size == 2) addOrder(
+                            mutableList[0], mutableList[1]
+                        )
+                    } else if (currentFragment.savedStateHandle.contains(
+                            Constants.SAVED_STATE_HANDLE_KEY_COIN
+                        )
+                    ) {
+                        getCoinNameFromDialog(currentFragment.savedStateHandle[Constants.SAVED_STATE_HANDLE_KEY_COIN]!!)
+                    }
+                    if (coinDetailJob.isCancelled) coinDetailJob = getCoinDetail()
+                    checkAfterCloseOrderListBottomSheet()
                 }
-                averageCalculate()
-                calculatePercentage(coinPrice)
-                if (viewModel.getCalculates().size == 0) {
-                    newAverageReset()
-                } else {
-                    newAverageCalculate()
+                ON_PAUSE -> {
+                    coinDetailJob.cancel()
                 }
-                updateSavedCoinList()
-                updateOrderListSize()
+                else -> {}
             }
         }
 
@@ -204,7 +167,7 @@ class BuyFragment : Fragment(),
         dialogLifecycle.addObserver(dialogObserver)
 
         viewLifecycleOwner.lifecycle.addObserver(LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_DESTROY) {
+            if (event == ON_DESTROY) {
                 dialogLifecycle.removeObserver(dialogObserver)
             }
         })
@@ -219,8 +182,22 @@ class BuyFragment : Fragment(),
         }
     }
 
+    private fun checkAfterCloseOrderListBottomSheet() {
+        viewModel.getCalculates().apply {
+            ordersArrayList = this
+        }
+        averageCalculate()
+        calculatePercentage(coinPrice)
+        if (viewModel.getCalculates().size == 0) {
+            newAverageReset()
+        } else {
+            newAverageCalculate()
+        }
+        updateSavedCoinList()
+        updateOrderListSize()
+    }
+
     private fun atamalar() {
-        loadingProgressBar = LoadingProgressBar(requireContext())
         arguments?.run {
             val coinAdi = this.getString(Constants.SEND_PREF_NAME)
             coinAdi?.let {
@@ -239,7 +216,6 @@ class BuyFragment : Fragment(),
         dfPriceAndAmount = DecimalFormat("#.########", otherSymbols)
         dfAverage = DecimalFormat("#.##", otherSymbols)
         dfPercentage = DecimalFormat("#.##", otherSymbols)
-        dialogCoinsList = Dialog(requireContext())
         if (!isInternetAvailable()) {
             Toast.makeText(context, Constants.NO_INTERNET_ERROR, Toast.LENGTH_SHORT).show()
         }
@@ -381,37 +357,6 @@ class BuyFragment : Fragment(),
         binding.tvKarliBakiye.text = "0"
     }
 
-
-    private fun showDialogAlertCoin(mutableList: MutableList<CoinsResponseItem>) {
-        val listBinding: CustomListBinding = CustomListBinding.inflate(layoutInflater)
-        dialogCoinsList.setContentView(listBinding.root)
-
-        adapterCoinsList = CoinsAdapter(mutableList, this)
-        listBinding.recyclerViewCoinler.setHasFixedSize(true)
-        listBinding.recyclerViewCoinler.adapter = adapterCoinsList
-
-        listBinding.svCoins.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(p0: String?): Boolean {
-                return false
-            }
-
-            override fun onQueryTextChange(p0: String?): Boolean {
-                adapterCoinsList.filter.filter(p0)
-                return true
-            }
-        })
-        dialogCoinsList.setOnDismissListener {
-            it.dismiss()
-            if (coinDetailJob.isCancelled) coinDetailJob = getCoinDetail()
-        }
-        dialogCoinsList.setOnCancelListener {
-            it.cancel()
-            if (coinDetailJob.isCancelled) coinDetailJob = getCoinDetail()
-        }
-        dialogCoinsList.window!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-        dialogCoinsList.show()
-    }
-
     private fun loadData() {
         viewModel.getCalculates().apply {
             ordersArrayList = this
@@ -523,7 +468,7 @@ class BuyFragment : Fragment(),
         return result
     }
 
-    override fun onItemClickedCoinlerList(coins: CoinsResponseItem) {
+    private fun getCoinNameFromDialog(coins: CoinsResponseItem) {
         binding.toolbar.coinAdi.text = coins.symbol
         coins.price?.let {
             updateDecimalFormat(it)
@@ -534,16 +479,12 @@ class BuyFragment : Fragment(),
         coinName = coins.symbol.toString()
 
         saveData()
-
-        adapterCoinsList.filter.filter("")
-
-        dialogCoinsList.dismiss()
     }
 
     override fun onResume() {
         super.onResume()
         //start the loop
-        coinDetailJob = getCoinDetail()
+        if (coinDetailJob.isActive.not()) coinDetailJob = getCoinDetail()
     }
 
     override fun onPause() {
@@ -566,7 +507,7 @@ class BuyFragment : Fragment(),
 
     private fun updateOrderListSize() {
         viewModel.getCalculates().size.apply {
-            binding.tvOrderListSize.text = "${this} adet emir var. Detay için tıkla."
+            binding.tvOrderListSize.text = "$this adet emir var. Detay için tıkla."
         }
     }
 }

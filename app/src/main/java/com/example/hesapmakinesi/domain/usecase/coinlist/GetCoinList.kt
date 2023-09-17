@@ -1,4 +1,4 @@
-package com.example.hesapmakinesi.domain.usecase.buy
+package com.example.hesapmakinesi.domain.usecase.coinlist
 
 import com.example.hesapmakinesi.data.model.CoinsResponseItem
 import com.example.hesapmakinesi.domain.repository.CoinsRepository

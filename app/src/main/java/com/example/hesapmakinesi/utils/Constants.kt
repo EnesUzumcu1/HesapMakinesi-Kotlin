@@ -53,5 +53,6 @@ class Constants {
 
         const val SAVED_STATE_HANDLE_KEY_ORDER = "order"
         const val SAVED_STATE_HANDLE_KEY_NEW_AMOUNT = "newAmount"
+        const val SAVED_STATE_HANDLE_KEY_COIN = "coin"
     }
 }

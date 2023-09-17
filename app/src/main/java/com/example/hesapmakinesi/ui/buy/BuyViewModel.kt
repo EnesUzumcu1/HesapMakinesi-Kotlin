@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-
 @HiltViewModel
 class BuyViewModel @Inject constructor(
     private val buyUseCase: BuyUseCase,
@@ -20,41 +19,8 @@ class BuyViewModel @Inject constructor(
     var preferencesName: String
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow<BuyUiState>(BuyUiState.Empty)
-    val uiState: StateFlow<BuyUiState> = _uiState
-
-    private val _uiEvent = MutableSharedFlow<BuyViewEvent>(replay = 0)
-    val uiEvent: SharedFlow<BuyViewEvent> = _uiEvent
-
     private val _uiEventDetail = MutableSharedFlow<BuyViewEventCoinDetail>(replay = 0)
     val uiEventDetail: SharedFlow<BuyViewEventCoinDetail> = _uiEventDetail
-
-    fun getCoinList() {
-        viewModelScope.launch {
-            buyUseCase.getCoinList.invoke().collect {
-                when (it) {
-                    is GetCoinListState.Loading -> {
-                        _uiState.value = BuyUiState.Loading
-                    }
-                    is GetCoinListState.Error -> {
-                        _uiState.value = BuyUiState.Empty
-                        _uiEvent.emit(BuyViewEvent.ShowError(it.error))
-                    }
-                    is GetCoinListState.Success -> {
-                        _uiState.value = BuyUiState.Empty
-
-                        it.data.filter {
-                            it.symbol?.contains("USDT") == true
-                        }.sortedBy {
-                            it.symbol
-                        }.toMutableList().apply {
-                            _uiEvent.emit(BuyViewEvent.ShowData(this))
-                        }
-                    }
-                }
-            }
-        }
-    }
 
     fun getCoinDetail(symbol: String) {
         viewModelScope.launch {
@@ -107,17 +73,7 @@ class BuyViewModel @Inject constructor(
     }
 }
 
-sealed class BuyViewEvent {
-    class ShowData(val data: MutableList<CoinsResponseItem>) : BuyViewEvent()
-    class ShowError(val error: String?) : BuyViewEvent()
-}
-
 sealed class BuyViewEventCoinDetail {
     class ShowData(val data: CoinsResponseItem) : BuyViewEventCoinDetail()
     class ShowError(val error: String?) : BuyViewEventCoinDetail()
-}
-
-sealed class BuyUiState {
-    object Empty : BuyUiState()
-    object Loading : BuyUiState()
 }
