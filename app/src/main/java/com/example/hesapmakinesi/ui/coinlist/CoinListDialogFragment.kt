@@ -15,7 +15,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.hesapmakinesi.data.model.CoinsResponseItem
 import com.example.hesapmakinesi.databinding.CustomDialogBoxCoinListBinding
-import com.example.hesapmakinesi.ui.buy.adapter.CoinsAdapter
+import com.example.hesapmakinesi.ui.coinlist.adapter.CoinsAdapter
 import com.example.hesapmakinesi.utils.Constants
 import com.example.hesapmakinesi.utils.LoadingProgressBar
 import dagger.hilt.android.AndroidEntryPoint

@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import com.example.hesapmakinesi.data.model.Order
 import com.example.hesapmakinesi.databinding.OrderListBottomSheetBinding
 import com.example.hesapmakinesi.ui.buy.BuyViewModel
@@ -48,6 +49,7 @@ class OrderListBottomSheet : BottomSheetDialogFragment(), SavedDatasAdapter.OnCl
                 buildRecyclerView()
             }
         }
+        findNavController().previousBackStackEntry?.savedStateHandle?.set(Constants.SAVED_STATE_HANDLE_KEY_CLOSED_BOTTOM_SHEET,"")
     }
 
     private fun buildRecyclerView() {

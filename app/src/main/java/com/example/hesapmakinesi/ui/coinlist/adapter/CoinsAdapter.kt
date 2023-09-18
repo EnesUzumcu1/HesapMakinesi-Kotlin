@@ -1,4 +1,4 @@
-package com.example.hesapmakinesi.ui.buy.adapter
+package com.example.hesapmakinesi.ui.coinlist.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup

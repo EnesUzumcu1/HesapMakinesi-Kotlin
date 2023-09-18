@@ -44,6 +44,7 @@ class BuyFragment : Fragment() {
     private lateinit var dfPercentage: DecimalFormat
     private lateinit var otherSymbols: DecimalFormatSymbols
     private lateinit var coinName: String
+    private var currency: String = " $"
 
     private lateinit var coinDetailJob: Job
 
@@ -109,8 +110,9 @@ class BuyFragment : Fragment() {
                                     coinPrice = safePrice
                                     binding.toolbar.coinFiyati.text =
                                         String.format(
-                                            "%s $",
-                                            dfPriceAndAmount.format(safePrice)
+                                            "%s%s",
+                                            dfPriceAndAmount.format(safePrice),
+                                            currency
                                         )
                                 }
                         }
@@ -136,25 +138,33 @@ class BuyFragment : Fragment() {
                         )
                     ) {
                         getNewAmountFromDialog(currentFragment.savedStateHandle[Constants.SAVED_STATE_HANDLE_KEY_NEW_AMOUNT]!!)
+                        currentFragment.savedStateHandle.remove<String>(Constants.SAVED_STATE_HANDLE_KEY_NEW_AMOUNT)
                     } else if (currentFragment.savedStateHandle.contains(
                             Constants.SAVED_STATE_HANDLE_KEY_ORDER
                         )
                     ) {
                         val mutableList: MutableList<String>? =
                             currentFragment.savedStateHandle[Constants.SAVED_STATE_HANDLE_KEY_ORDER]
-                        currentFragment.savedStateHandle[Constants.SAVED_STATE_HANDLE_KEY_ORDER] =
-                            null
-                        if (mutableList.isNullOrEmpty().not() && mutableList?.size == 2) addOrder(
-                            mutableList[0], mutableList[1]
-                        )
+                        currentFragment.savedStateHandle.remove<String>(Constants.SAVED_STATE_HANDLE_KEY_ORDER)
+                        if (mutableList.isNullOrEmpty().not() && mutableList?.size == 2) {
+                            addOrder(mutableList[0], mutableList[1])
+                            updateOrderListSize()
+                        }
                     } else if (currentFragment.savedStateHandle.contains(
                             Constants.SAVED_STATE_HANDLE_KEY_COIN
                         )
                     ) {
                         getCoinNameFromDialog(currentFragment.savedStateHandle[Constants.SAVED_STATE_HANDLE_KEY_COIN]!!)
+                        currentFragment.savedStateHandle.remove<String>(Constants.SAVED_STATE_HANDLE_KEY_COIN)
+                    } else if (currentFragment.savedStateHandle.contains(
+                            Constants.SAVED_STATE_HANDLE_KEY_CLOSED_BOTTOM_SHEET
+                        )
+                    ) {
+                        checkAfterCloseOrderListBottomSheet()
+                        currentFragment.savedStateHandle.remove<String>(Constants.SAVED_STATE_HANDLE_KEY_CLOSED_BOTTOM_SHEET)
                     }
                     if (coinDetailJob.isCancelled) coinDetailJob = getCoinDetail()
-                    checkAfterCloseOrderListBottomSheet()
+
                 }
                 ON_PAUSE -> {
                     coinDetailJob.cancel()
@@ -193,7 +203,7 @@ class BuyFragment : Fragment() {
         } else {
             newAverageCalculate()
         }
-        updateSavedCoinList()
+        updateSavedCoinList(updateAmount = true)
         updateOrderListSize()
     }
 
@@ -271,8 +281,8 @@ class BuyFragment : Fragment() {
             priceAverage = totalMoney.divide(amount, 8, RoundingMode.HALF_EVEN)
         }
         binding.tvAdet.text = dfPriceAndAmount.format(amount)
-        binding.tvOrtalama.text = dfAverage.format(priceAverage)
-        binding.tvToplamPara.text = dfPercentage.format(totalMoney)
+        binding.tvOrtalama.text = dfAverage.format(priceAverage) + currency
+        binding.tvToplamPara.text = dfPercentage.format(totalMoney) + currency
     }
 
     private fun newAverageCalculate() {
@@ -287,7 +297,7 @@ class BuyFragment : Fragment() {
                 )
 
             newPriceAverage = totalMoney.divide(newAmount, 8, RoundingMode.HALF_EVEN)
-            binding.tvYeniOrtalama.text = dfAverage.format(newPriceAverage)
+            binding.tvYeniOrtalama.text = dfAverage.format(newPriceAverage) + currency
 
             updateTextColor(priceAverage, newPriceAverage, binding.tvYeniOrtalama)
         }
@@ -321,7 +331,9 @@ class BuyFragment : Fragment() {
         averageCalculate()
         calculatePercentage(coinPrice)
         newAverageCalculate()
-        saveData()
+        saveCalculates()
+        saveCoinName()
+        updateSavedCoinList(updateAmount = true)
     }
 
     private fun getNewAmountFromDialog(inputAmount: String) {
@@ -334,7 +346,7 @@ class BuyFragment : Fragment() {
                 newAmount = BigDecimal(0)
                 newAverageReset()
             }
-            saveData()
+            saveNewAmount()
         }
     }
 
@@ -376,17 +388,24 @@ class BuyFragment : Fragment() {
             coinName = this
             binding.toolbar.coinAdi.text = coinName
         }
+        findCurrency()
     }
 
-    private fun saveData() {
+    private fun saveCalculates() {
         viewModel.setCalculates(ordersArrayList)
+    }
+
+    private fun saveNewAmount() {
         if (newAmount >= BigDecimal(0)) {
             viewModel.setNewQuantity(newAmount.toString())
         }
+    }
+
+    private fun saveCoinName() {
         if (binding.toolbar.coinAdi.text.toString() != "") {
             viewModel.setCoinName(binding.toolbar.coinAdi.text.toString())
         }
-        updateSavedCoinList()
+        updateSavedCoinList(updateCoinName = true)
     }
 
     private fun calculatePercentage(price: BigDecimal) {
@@ -433,8 +452,8 @@ class BuyFragment : Fragment() {
         if (newAmount > BigDecimal(0)) {
             karliAdet = newAmount
         }
-        binding.tvKarliBakiye.text = dfPercentage.format(karliAdet * price)
-        binding.tvKarsizBakiye.text = dfPercentage.format(karsizAdet * price)
+        binding.tvKarliBakiye.text = dfPercentage.format(karliAdet * price) + currency
+        binding.tvKarsizBakiye.text = dfPercentage.format(karsizAdet * price) + currency
     }
 
     private fun isInternetAvailable(): Boolean {
@@ -470,15 +489,15 @@ class BuyFragment : Fragment() {
 
     private fun getCoinNameFromDialog(coins: CoinsResponseItem) {
         binding.toolbar.coinAdi.text = coins.symbol
+        coinName = coins.symbol.toString()
+        findCurrency()
         coins.price?.let {
             updateDecimalFormat(it)
             calculatePercentage(it.toBigDecimal())
         }
         binding.toolbar.coinFiyati.text =
-            String.format("%s $", dfPriceAndAmount.format(coins.price?.toDouble()))
-        coinName = coins.symbol.toString()
-
-        saveData()
+            String.format("%s%s", dfPriceAndAmount.format(coins.price?.toDouble()), currency)
+        saveCoinName()
     }
 
     override fun onResume() {
@@ -493,14 +512,14 @@ class BuyFragment : Fragment() {
         coinDetailJob.cancel()
     }
 
-    private fun updateSavedCoinList() {
-        var previousList = viewModel.getSavedCoinsList()
+    private fun updateSavedCoinList(updateCoinName: Boolean = false, updateAmount: Boolean = false) {
+        val previousList = viewModel.getSavedCoinsList()
 
         previousList.first {
             it.id == viewModel.preferencesName
         }.apply {
-            this.adet = viewModel.getCalculates().size
-            this.isim = binding.toolbar.coinAdi.text.toString()
+            if (updateAmount) this.adet = viewModel.getCalculates().size
+            if (updateCoinName) this.isim = binding.toolbar.coinAdi.text.toString()
         }
         viewModel.updateSavedCoinsList(previousList)
     }
@@ -508,6 +527,13 @@ class BuyFragment : Fragment() {
     private fun updateOrderListSize() {
         viewModel.getCalculates().size.apply {
             binding.tvOrderListSize.text = "$this adet emir var. Detay için tıkla."
+        }
+    }
+
+    private fun findCurrency() {
+        currency = if (coinName.takeLast(4) == "USDT") " $"
+        else {
+            " " + coinName.substring(4)
         }
     }
 }
