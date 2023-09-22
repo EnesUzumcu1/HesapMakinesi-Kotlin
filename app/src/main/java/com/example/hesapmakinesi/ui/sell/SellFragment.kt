@@ -136,7 +136,7 @@ class SellFragment : Fragment(), SavedDatasAdapter.OnClickListener {
     }
 
     private fun buildRecyclerView() {
-        adapterOrders = SavedDatasAdapter(ordersArrayList, this)
+        adapterOrders = SavedDatasAdapter(ordersArrayList, this,"","")
         binding.recyclerview.setHasFixedSize(true)
         binding.recyclerview.adapter = adapterOrders
         binding.recyclerview.smoothScrollToPosition(adapterOrders.itemCount)

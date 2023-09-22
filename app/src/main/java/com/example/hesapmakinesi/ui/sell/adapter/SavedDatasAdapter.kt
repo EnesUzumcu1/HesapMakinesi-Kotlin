@@ -9,12 +9,14 @@ import java.text.DecimalFormat
 
 class SavedDatasAdapter(
     private var hesapArrayList: java.util.ArrayList<Order>,
-    private var listener: OnClickListener
+    private var listener: OnClickListener,
+    private var priceName: String,
+    private var amountName: String
 ) : RecyclerView.Adapter<SavedDatasAdapter.SavedDatasViewHolder>() {
 
     class SavedDatasViewHolder(private val binding: ListItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        fun bind(order: Order, listener: OnClickListener, position: Int) {
+        fun bind(order: Order, listener: OnClickListener, position: Int,priceName: String, amountName: String) {
 
             val df = DecimalFormat("0")
             df.maximumFractionDigits = 340
@@ -23,6 +25,12 @@ class SavedDatasAdapter(
 
             binding.tvAdet.text = df.format(order.adet)
             binding.tvFiyat.text = df.format(order.fiyat)
+
+            binding.tvCoinName.text = "$amountName/$priceName"
+            binding.tvPriceTitle.text = "Fiyat ($priceName)"
+            binding.tvAmountTitle.text = "Adet ($amountName)"
+            binding.tvTotalTitle.text = "Toplam ($priceName)"
+            binding.tvTotal.text = df.format(order.adet*order.fiyat)
 
             binding.btnSil.setOnClickListener {
                 listener.onItemClickedDelete(position)
@@ -38,7 +46,7 @@ class SavedDatasAdapter(
     }
 
     override fun onBindViewHolder(holder: SavedDatasViewHolder, position: Int) {
-        holder.bind(hesapArrayList[position], listener, position)
+        holder.bind(hesapArrayList[position], listener, position,priceName,amountName)
     }
 
     override fun getItemCount(): Int {

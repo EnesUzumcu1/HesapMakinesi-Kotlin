@@ -19,10 +19,12 @@ import dagger.hilt.android.AndroidEntryPoint
 class OrderListBottomSheet : BottomSheetDialogFragment(), SavedDatasAdapter.OnClickListener {
 
     private lateinit var binding: OrderListBottomSheetBinding
-    private var preferencesName : String = ""
+    private var preferencesName: String = ""
     private val viewModel by viewModels<BuyViewModel>()
     private lateinit var adapterOrders: SavedDatasAdapter
     private lateinit var ordersArrayList: ArrayList<Order>
+    private var priceName: String = ""
+    private var amountName: String = ""
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -46,14 +48,26 @@ class OrderListBottomSheet : BottomSheetDialogFragment(), SavedDatasAdapter.OnCl
             viewModel.preferencesName = preferencesName
             viewModel.getCalculates().apply {
                 ordersArrayList = this
+                viewModel.getCoinName().apply {
+                    if (this.takeLast(4) == "USDT") {
+                        priceName = "USDT"
+                        amountName = this.dropLast(4)
+                    } else {
+                        priceName = this.substring(4)
+                        amountName = this.take(4)
+                    }
+                }
                 buildRecyclerView()
             }
         }
-        findNavController().previousBackStackEntry?.savedStateHandle?.set(Constants.SAVED_STATE_HANDLE_KEY_CLOSED_BOTTOM_SHEET,"")
+        findNavController().previousBackStackEntry?.savedStateHandle?.set(
+            Constants.SAVED_STATE_HANDLE_KEY_CLOSED_BOTTOM_SHEET,
+            ""
+        )
     }
 
     private fun buildRecyclerView() {
-        adapterOrders = SavedDatasAdapter(ordersArrayList, this)
+        adapterOrders = SavedDatasAdapter(ordersArrayList, this, priceName, amountName)
         binding.recyclerview.setHasFixedSize(true)
         binding.recyclerview.adapter = adapterOrders
     }
