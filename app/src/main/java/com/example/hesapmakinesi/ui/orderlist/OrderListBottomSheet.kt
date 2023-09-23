@@ -25,6 +25,7 @@ class OrderListBottomSheet : BottomSheetDialogFragment(), SavedDatasAdapter.OnCl
     private lateinit var ordersArrayList: ArrayList<Order>
     private var priceName: String = ""
     private var amountName: String = ""
+    private var direction: String = "BUY"
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -42,28 +43,37 @@ class OrderListBottomSheet : BottomSheetDialogFragment(), SavedDatasAdapter.OnCl
             prefName?.let {
                 preferencesName = it
             }
+            val getDirection = this.getString(Constants.DIRECTION)
+            getDirection?.let {
+                direction = it
+            }
         }
         ordersArrayList = ArrayList()
         lifecycleScope.launchWhenResumed {
             viewModel.preferencesName = preferencesName
-            viewModel.getCalculates().apply {
-                ordersArrayList = this
-                viewModel.getCoinName().apply {
-                    if (this.takeLast(4) == "USDT") {
-                        priceName = "USDT"
-                        amountName = this.dropLast(4)
-                    } else {
-                        priceName = this.substring(4)
-                        amountName = this.take(4)
-                    }
-                }
-                buildRecyclerView()
-            }
+            if (direction == Constants.DIRECTION_BUY) setPriceAndAmountName(viewModel.getBuyCalculates())
+            else if (direction == Constants.DIRECTION_SELL) setPriceAndAmountName(viewModel.getSellCalculates())
         }
         findNavController().previousBackStackEntry?.savedStateHandle?.set(
             Constants.SAVED_STATE_HANDLE_KEY_CLOSED_BOTTOM_SHEET,
             ""
         )
+    }
+
+    private fun setPriceAndAmountName(arrayList: ArrayList<Order>) {
+        arrayList.apply {
+            ordersArrayList = this
+            viewModel.getCoinName().apply {
+                if (this.takeLast(4) == "USDT") {
+                    priceName = "USDT"
+                    amountName = this.dropLast(4)
+                } else {
+                    priceName = this.substring(4)
+                    amountName = this.take(4)
+                }
+            }
+            buildRecyclerView()
+        }
     }
 
     private fun buildRecyclerView() {
@@ -74,6 +84,7 @@ class OrderListBottomSheet : BottomSheetDialogFragment(), SavedDatasAdapter.OnCl
 
     override fun onItemClickedDelete(position: Int) {
         adapterOrders.removeItem(position)
-        viewModel.setCalculates(ordersArrayList)
+        if (direction == Constants.DIRECTION_BUY) viewModel.setBuyCalculates(ordersArrayList)
+        else if (direction == Constants.DIRECTION_SELL) viewModel.setSellCalculates(ordersArrayList)
     }
 }

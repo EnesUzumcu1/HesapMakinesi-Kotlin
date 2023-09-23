@@ -39,7 +39,7 @@ class BuyViewModel @Inject constructor(
         }
     }
 
-    fun getCalculates(): ArrayList<Order> {
+    fun getBuyCalculates(): ArrayList<Order> {
         return sharedPreferencesManager.getCalculatesBuy(preferencesName)
     }
 
@@ -51,7 +51,7 @@ class BuyViewModel @Inject constructor(
         return sharedPreferencesManager.getCoinName(preferencesName)
     }
 
-    fun setCalculates(hesapArrayList: ArrayList<Order>) {
+    fun setBuyCalculates(hesapArrayList: ArrayList<Order>) {
         sharedPreferencesManager.setCalculatesBuy(preferencesName, hesapArrayList)
     }
 
@@ -61,6 +61,13 @@ class BuyViewModel @Inject constructor(
 
     fun setCoinName(coinName: String) {
         sharedPreferencesManager.setCoinName(preferencesName, coinName)
+    }
+
+    fun getSellCalculates(): ArrayList<Order>{
+        return sharedPreferencesManager.getCalculatesSell(preferencesName)
+    }
+    fun setSellCalculates(hesapArrayList: ArrayList<Order>){
+        sharedPreferencesManager.setCalculatesSell(preferencesName,hesapArrayList)
     }
 
     //update recyclerview item in savedCoinFragment

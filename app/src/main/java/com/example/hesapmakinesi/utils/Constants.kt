@@ -55,5 +55,9 @@ class Constants {
         const val SAVED_STATE_HANDLE_KEY_NEW_AMOUNT = "newAmount"
         const val SAVED_STATE_HANDLE_KEY_COIN = "coin"
         const val SAVED_STATE_HANDLE_KEY_CLOSED_BOTTOM_SHEET = ""
+
+        const val DIRECTION = "Direction"
+        const val DIRECTION_BUY = "BUY"
+        const val DIRECTION_SELL = "SELL"
     }
 }

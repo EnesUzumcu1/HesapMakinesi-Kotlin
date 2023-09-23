@@ -38,7 +38,8 @@ class BuyFragment : Fragment() {
 
     private val viewModel by viewModels<BuyViewModel>()
 
-    private lateinit var ordersArrayList: ArrayList<Order>
+    private lateinit var ordersBuyArrayList: ArrayList<Order>
+    private lateinit var ordersSellArrayList: ArrayList<Order>
     private lateinit var dfPriceAndAmount: DecimalFormat
 
     private lateinit var dfPercentage: DecimalFormat
@@ -60,6 +61,8 @@ class BuyFragment : Fragment() {
     private var newAmount = BigDecimal(-1)
     private var newPriceAverage = BigDecimal(0)
 
+    private var checkVisibility = true
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -74,9 +77,11 @@ class BuyFragment : Fragment() {
         atamalar()
         loadData()
         averageCalculate()
+        averageSellCalculate()
         decimalFormatUpdate()
         newAverageCalculate()
-        updateOrderListSize()
+        updateBuyOrderListSize()
+        updateSellOrderListSize()
         if (this::coinDetailJob.isInitialized.not()) {
             coinDetailJob = getCoinDetail()
         }
@@ -88,6 +93,15 @@ class BuyFragment : Fragment() {
             findNavController().navigate(R.id.orderListBottomSheet, Bundle().apply {
                 val value: String = viewModel.preferencesName
                 putString(Constants.SEND_PREF_NAME, value)
+                putString(Constants.DIRECTION, Constants.DIRECTION_BUY)
+            })
+        }
+
+        binding.cvShowOrderSell.setOnClickListener {
+            findNavController().navigate(R.id.orderListBottomSheet, Bundle().apply {
+                val value: String = viewModel.preferencesName
+                putString(Constants.SEND_PREF_NAME, value)
+                putString(Constants.DIRECTION, Constants.DIRECTION_SELL)
             })
         }
 
@@ -97,6 +111,24 @@ class BuyFragment : Fragment() {
 
         binding.toolbar.coinAdi.setOnClickListener {
             findNavController().navigate(R.id.coinListDialogFragment)
+        }
+
+        binding.tvSeparator.setOnClickListener {
+            if (checkVisibility) {
+                binding.tvSeparator.setCompoundDrawablesRelativeWithIntrinsicBounds(0,0,R.drawable.ic_round_arrow_up_24,0)
+                binding.cvTotalSellAmount.visibility = View.GONE
+                binding.cvSellAverage.visibility = View.GONE
+                binding.cvAllSellOrdersAreSold.visibility = View.GONE
+                binding.cvAllSellOrdersProfitRate.visibility = View.GONE
+                checkVisibility = false
+            } else {
+                binding.tvSeparator.setCompoundDrawablesRelativeWithIntrinsicBounds(0,0,R.drawable.ic_round_arrow_down_24,0)
+                binding.cvTotalSellAmount.visibility = View.VISIBLE
+                binding.cvSellAverage.visibility = View.VISIBLE
+                binding.cvAllSellOrdersAreSold.visibility = View.VISIBLE
+                binding.cvAllSellOrdersProfitRate.visibility = View.VISIBLE
+                checkVisibility = true
+            }
         }
 
         lifecycleScope.launchWhenResumed {
@@ -146,9 +178,14 @@ class BuyFragment : Fragment() {
                         val mutableList: MutableList<String>? =
                             currentFragment.savedStateHandle[Constants.SAVED_STATE_HANDLE_KEY_ORDER]
                         currentFragment.savedStateHandle.remove<String>(Constants.SAVED_STATE_HANDLE_KEY_ORDER)
-                        if (mutableList.isNullOrEmpty().not() && mutableList?.size == 2) {
-                            addOrder(mutableList[0], mutableList[1])
-                            updateOrderListSize()
+                        if (mutableList.isNullOrEmpty().not() && mutableList?.size == 3) {
+                            if (mutableList[2] == Constants.DIRECTION_BUY) {
+                                addBuyOrder(mutableList[0], mutableList[1])
+                                updateBuyOrderListSize()
+                            } else if (mutableList[2] == Constants.DIRECTION_SELL) {
+                                addSellOrder(mutableList[0], mutableList[1])
+                                updateSellOrderListSize()
+                            }
                         }
                     } else if (currentFragment.savedStateHandle.contains(
                             Constants.SAVED_STATE_HANDLE_KEY_COIN
@@ -193,18 +230,23 @@ class BuyFragment : Fragment() {
     }
 
     private fun checkAfterCloseOrderListBottomSheet() {
-        viewModel.getCalculates().apply {
-            ordersArrayList = this
+        viewModel.getBuyCalculates().apply {
+            ordersBuyArrayList = this
+        }
+        viewModel.getSellCalculates().apply {
+            ordersSellArrayList = this
         }
         averageCalculate()
         calculatePercentage(coinPrice)
-        if (viewModel.getCalculates().size == 0) {
+        averageSellCalculate()
+        if (viewModel.getBuyCalculates().size == 0) {
             newAverageReset()
         } else {
             newAverageCalculate()
         }
         updateSavedCoinList(updateAmount = true)
-        updateOrderListSize()
+        updateBuyOrderListSize()
+        updateSellOrderListSize()
     }
 
     private fun atamalar() {
@@ -214,7 +256,8 @@ class BuyFragment : Fragment() {
                 viewModel.preferencesName = it
             }
         }
-        ordersArrayList = ArrayList()
+        ordersBuyArrayList = ArrayList()
+        ordersSellArrayList = ArrayList()
 
         //Double ifadeler için ondalık ayırıcının nokta olması gerekiyor. Bunu sabit olarak uygulamak için kural eklendi
         val currentLocale = Locale.getDefault()
@@ -275,7 +318,7 @@ class BuyFragment : Fragment() {
         amount = BigDecimal(0)
         priceAverage = BigDecimal(0)
         totalMoney = BigDecimal(0)
-        for (order in ordersArrayList) {
+        for (order in ordersBuyArrayList) {
             amount += order.adet
             totalMoney += order.adet * order.fiyat
             priceAverage = totalMoney.divide(amount, 8, RoundingMode.HALF_EVEN)
@@ -318,22 +361,69 @@ class BuyFragment : Fragment() {
         }
     }
 
-    private fun addOrder(amount: String?, price: String?) {
+    private fun addBuyOrder(amount: String?, price: String?) {
         amount?.let { safeAmount ->
             price?.let { safePrice ->
-                ordersArrayList.add(Order(safeAmount.toBigDecimal(), safePrice.toBigDecimal()))
-                afterItemAdded()
+                ordersBuyArrayList.add(Order(safeAmount.toBigDecimal(), safePrice.toBigDecimal()))
+                afterBuyItemAdded()
             }
         }
     }
 
-    private fun afterItemAdded() {
+    private fun addSellOrder(amount: String?, price: String?) {
+        amount?.let { safeAmount ->
+            price?.let { safePrice ->
+                ordersSellArrayList.add(Order(safeAmount.toBigDecimal(), safePrice.toBigDecimal()))
+                afterSellItemAdded()
+            }
+        }
+    }
+
+    private fun afterBuyItemAdded() {
         averageCalculate()
+        averageSellCalculate()
         calculatePercentage(coinPrice)
         newAverageCalculate()
-        saveCalculates()
+        saveBuyCalculates()
         saveCoinName()
         updateSavedCoinList(updateAmount = true)
+    }
+
+    private fun afterSellItemAdded() {
+        averageSellCalculate()
+        saveSellCalculates()
+    }
+
+    private fun averageSellCalculate() {
+        var adet = BigDecimal(0)
+        var fiyatOrt = BigDecimal(0)
+        var gerceklesirsePara = BigDecimal(0)
+        for (order in ordersSellArrayList) {
+            adet += order.adet
+            gerceklesirsePara += order.adet * order.fiyat
+            fiyatOrt = gerceklesirsePara / adet
+        }
+        binding.tvTotalSellAmount.text = dfPriceAndAmount.format(adet)
+        binding.tvSellAverage.text = dfAverage.format(fiyatOrt) + currency
+        binding.tvAllSellOrdersAreSold.text = dfPercentage.format(gerceklesirsePara) + currency
+        val hamPara = totalMoney
+        if (gerceklesirsePara > BigDecimal(0)) {
+            val artisOrani =
+                ((gerceklesirsePara - hamPara) / gerceklesirsePara * BigDecimal(100))
+            val netKar = (gerceklesirsePara - hamPara)
+            binding.tvAllSellOrdersProfitRate.text = String.format(
+                "%% %s (%s)",
+                dfPercentage.format(artisOrani),
+                dfPercentage.format(netKar)
+            )
+            if (artisOrani > BigDecimal(0)) {
+                binding.tvAllSellOrdersProfitRate.setTextColor(Color.GREEN)
+            } else {
+                binding.tvAllSellOrdersProfitRate.setTextColor(Color.RED)
+            }
+        } else {
+            binding.tvAllSellOrdersProfitRate.text = "0"
+        }
     }
 
     private fun getNewAmountFromDialog(inputAmount: String) {
@@ -370,8 +460,11 @@ class BuyFragment : Fragment() {
     }
 
     private fun loadData() {
-        viewModel.getCalculates().apply {
-            ordersArrayList = this
+        viewModel.getBuyCalculates().apply {
+            ordersBuyArrayList = this
+        }
+        viewModel.getSellCalculates().apply {
+            ordersSellArrayList = this
         }
         viewModel.getNewQuantity().apply {
 
@@ -391,8 +484,8 @@ class BuyFragment : Fragment() {
         findCurrency()
     }
 
-    private fun saveCalculates() {
-        viewModel.setCalculates(ordersArrayList)
+    private fun saveBuyCalculates() {
+        viewModel.setBuyCalculates(ordersBuyArrayList)
     }
 
     private fun saveNewAmount() {
@@ -406,6 +499,10 @@ class BuyFragment : Fragment() {
             viewModel.setCoinName(binding.toolbar.coinAdi.text.toString())
         }
         updateSavedCoinList(updateCoinName = true)
+    }
+
+    private fun saveSellCalculates() {
+        viewModel.setSellCalculates(ordersSellArrayList)
     }
 
     private fun calculatePercentage(price: BigDecimal) {
@@ -512,21 +609,30 @@ class BuyFragment : Fragment() {
         coinDetailJob.cancel()
     }
 
-    private fun updateSavedCoinList(updateCoinName: Boolean = false, updateAmount: Boolean = false) {
+    private fun updateSavedCoinList(
+        updateCoinName: Boolean = false,
+        updateAmount: Boolean = false
+    ) {
         val previousList = viewModel.getSavedCoinsList()
 
         previousList.first {
             it.id == viewModel.preferencesName
         }.apply {
-            if (updateAmount) this.adet = viewModel.getCalculates().size
+            if (updateAmount) this.adet = viewModel.getBuyCalculates().size
             if (updateCoinName) this.isim = binding.toolbar.coinAdi.text.toString()
         }
         viewModel.updateSavedCoinsList(previousList)
     }
 
-    private fun updateOrderListSize() {
-        viewModel.getCalculates().size.apply {
-            binding.tvOrderListSize.text = "$this adet emir var. Detay için tıkla."
+    private fun updateBuyOrderListSize() {
+        viewModel.getBuyCalculates().size.apply {
+            binding.tvOrderListSize.text = "$this adet alış emri var. \nDetay için tıkla."
+        }
+    }
+
+    private fun updateSellOrderListSize(){
+        viewModel.getSellCalculates().size.apply {
+            binding.tvSellOrderListSize.text = "$this adet satış emri var. \nDetay için tıkla."
         }
     }
 
