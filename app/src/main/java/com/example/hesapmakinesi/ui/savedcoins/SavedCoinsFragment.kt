@@ -9,7 +9,6 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import com.example.hesapmakinesi.R
@@ -20,9 +19,6 @@ import com.example.hesapmakinesi.ui.savedcoins.adapter.SavedCoinsDiffutilAdapter
 import com.example.hesapmakinesi.utils.AlertDialogBuilder
 import com.example.hesapmakinesi.utils.Constants
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.newFixedThreadPoolContext
 
 @AndroidEntryPoint
 class SavedCoinsFragment : Fragment(), SavedCoinsDiffutilAdapter.OnClickListenerSavedCoins {
@@ -154,7 +150,7 @@ class SavedCoinsFragment : Fragment(), SavedCoinsDiffutilAdapter.OnClickListener
     }
 
     override fun onItemClickedSavedCoinsDelete(savedCoins: SavedCoins, position: Int) {
-        val listener = DialogInterface.OnClickListener { p0: DialogInterface?, p1: Int ->
+        val listener = DialogInterface.OnClickListener { _: DialogInterface?, p1: Int ->
             when (p1) {
                 AlertDialog.BUTTON_NEGATIVE -> {
                     deleteSavedCoin(savedCoins, position)
@@ -168,7 +164,7 @@ class SavedCoinsFragment : Fragment(), SavedCoinsDiffutilAdapter.OnClickListener
 
     override fun onItemClickedSavedCoinsDetail(savedCoins: SavedCoins) {
         navController.navigate(
-            R.id.action_savedCoinsFragment_to_calculateFragment,
+            R.id.action_savedCoinsFragment_to_buyFragment,
             Bundle().apply {
                 val value: String = savedCoins.id
                 putString(Constants.SEND_PREF_NAME, value)
@@ -194,15 +190,15 @@ class SavedCoinsFragment : Fragment(), SavedCoinsDiffutilAdapter.OnClickListener
     private fun updateSavedCoinListNewQuantity() {
         for (i in stringsID) {
             if (!i.durum) {
-                var oldquantity = viewModel.getNewQuantity(i.id)
+                val oldquantity = viewModel.getNewQuantity(i.id)
                 if (oldquantity.contains(" ")) {
-                    var splited = oldquantity.split(" ").toTypedArray()
+                    val splited = oldquantity.split(" ").toTypedArray()
                     splited.first().apply {
                         if (this != "Yeni") {
                             viewModel.setNewQuantity(i.id, this)
                             Toast.makeText(
                                 requireContext(),
-                                "${i.id} yeni adet guncellendi ${this}",
+                                "${i.id} yeni adet guncellendi $this",
                                 Toast.LENGTH_SHORT
                             ).show()
                         }

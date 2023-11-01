@@ -1,4 +1,4 @@
-package com.example.hesapmakinesi.ui.sell.adapter
+package com.example.hesapmakinesi.ui.orderlist.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -16,7 +16,7 @@ class SavedDatasAdapter(
 
     class SavedDatasViewHolder(private val binding: ListItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        fun bind(order: Order, listener: OnClickListener, position: Int,priceName: String, amountName: String) {
+        fun bind(order: Order, listener: OnClickListener, position: Int, priceName: String, amountName: String) {
 
             val df = DecimalFormat("0")
             df.maximumFractionDigits = 340

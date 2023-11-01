@@ -26,6 +26,7 @@ import com.example.hesapmakinesi.utils.Constants
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
 import java.math.BigDecimal
+import java.math.MathContext
 import java.math.RoundingMode
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
@@ -41,7 +42,7 @@ class BuyFragment : Fragment() {
     private lateinit var ordersBuyArrayList: ArrayList<Order>
     private lateinit var ordersSellArrayList: ArrayList<Order>
     private lateinit var dfPriceAndAmount: DecimalFormat
-
+    private lateinit var dfAverage: DecimalFormat
     private lateinit var dfPercentage: DecimalFormat
     private lateinit var otherSymbols: DecimalFormatSymbols
     private lateinit var coinName: String
@@ -51,15 +52,11 @@ class BuyFragment : Fragment() {
 
     private var coinPrice: BigDecimal = BigDecimal(0)
 
-    companion object {
-        var totalMoney = BigDecimal(0)
-        lateinit var dfAverage: DecimalFormat
-    }
-
     private var amount = BigDecimal(0)
     private var priceAverage = BigDecimal(0)
     private var newAmount = BigDecimal(-1)
     private var newPriceAverage = BigDecimal(0)
+    private var totalMoney = BigDecimal(0)
 
     private var checkVisibility = true
 
@@ -160,7 +157,7 @@ class BuyFragment : Fragment() {
             }
         }
 
-        val currentFragment = findNavController().getBackStackEntry(R.id.calculateFragment)
+        val currentFragment = findNavController().getBackStackEntry(R.id.buyFragment)
         val dialogObserver = LifecycleEventObserver { _, event ->
 
             when (event) {
@@ -406,11 +403,10 @@ class BuyFragment : Fragment() {
         binding.tvTotalSellAmount.text = dfPriceAndAmount.format(adet)
         binding.tvSellAverage.text = dfAverage.format(fiyatOrt) + currency
         binding.tvAllSellOrdersAreSold.text = dfPercentage.format(gerceklesirsePara) + currency
-        val hamPara = totalMoney
         if (gerceklesirsePara > BigDecimal(0)) {
             val artisOrani =
-                ((gerceklesirsePara - hamPara) / gerceklesirsePara * BigDecimal(100))
-            val netKar = (gerceklesirsePara - hamPara)
+                ((gerceklesirsePara - totalMoney).divide(totalMoney, MathContext.DECIMAL64) * BigDecimal(100))
+            val netKar = (gerceklesirsePara - totalMoney)
             binding.tvAllSellOrdersProfitRate.text = String.format(
                 "%% %s (%s)",
                 dfPercentage.format(artisOrani),

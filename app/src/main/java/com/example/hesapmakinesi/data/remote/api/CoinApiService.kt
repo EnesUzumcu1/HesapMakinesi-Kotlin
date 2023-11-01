@@ -4,7 +4,6 @@ import com.example.hesapmakinesi.data.model.CoinsResponseItem
 import com.example.hesapmakinesi.utils.Constants
 import retrofit2.Response
 import retrofit2.http.GET
-import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface CoinApiService {

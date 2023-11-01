@@ -10,7 +10,7 @@ import androidx.navigation.fragment.findNavController
 import com.example.hesapmakinesi.data.model.Order
 import com.example.hesapmakinesi.databinding.OrderListBottomSheetBinding
 import com.example.hesapmakinesi.ui.buy.BuyViewModel
-import com.example.hesapmakinesi.ui.sell.adapter.SavedDatasAdapter
+import com.example.hesapmakinesi.ui.orderlist.adapter.SavedDatasAdapter
 import com.example.hesapmakinesi.utils.Constants
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import dagger.hilt.android.AndroidEntryPoint

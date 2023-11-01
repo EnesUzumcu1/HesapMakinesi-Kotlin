@@ -11,14 +11,9 @@
         android:label="fragment_saved_coins"
         tools:layout="@layout/fragment_saved_coins" >
         <action
-            android:id="@+id/action_savedCoinsFragment_to_calculateFragment"
-            app:destination="@id/calculateFragment" />
+            android:id="@+id/action_savedCoinsFragment_to_buyFragment"
+            app:destination="@id/buyFragment" />
     </fragment>
-    <fragment
-        android:id="@+id/calculateFragment"
-        android:name="com.example.hesapmakinesi.ui.buyandsell.BuyAndSellFragment"
-        android:label="fragment_calculate"
-        tools:layout="@layout/fragment_buyandsell" />
     <dialog
         android:id="@+id/newAmountDialogFragment"
         android:name="com.example.hesapmakinesi.ui.newamount.NewAmountDialogFragment"

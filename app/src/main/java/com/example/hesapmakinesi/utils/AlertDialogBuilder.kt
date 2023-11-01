@@ -1,8 +1,8 @@
 package com.example.hesapmakinesi.utils
 
-import android.app.AlertDialog;
-import android.app.Dialog;
-import android.content.Context;
+import android.app.AlertDialog
+import android.app.Dialog
+import android.content.Context
 import android.content.DialogInterface
 import com.example.hesapmakinesi.data.model.SavedCoins
 
