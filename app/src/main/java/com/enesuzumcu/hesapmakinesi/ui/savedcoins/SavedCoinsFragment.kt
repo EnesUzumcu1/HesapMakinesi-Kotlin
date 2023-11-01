@@ -53,7 +53,7 @@ class SavedCoinsFragment : Fragment(), SavedCoinsDiffutilAdapter.OnClickListener
             saveData()
             changeVisibility()
         }
-        updateSavedCoinListNewQuantity()
+
     }
 
     private fun coinEkle(prefName: String) {
@@ -186,26 +186,4 @@ class SavedCoinsFragment : Fragment(), SavedCoinsDiffutilAdapter.OnClickListener
         viewModel.updateIDs(stringsID)
     }
 
-    //guncellemeden sonra silinecek
-    private fun updateSavedCoinListNewQuantity() {
-        for (i in stringsID) {
-            if (!i.durum) {
-                val oldquantity = viewModel.getNewQuantity(i.id)
-                if (oldquantity.contains(" ")) {
-                    val splited = oldquantity.split(" ").toTypedArray()
-                    splited.first().apply {
-                        if (this != "Yeni") {
-                            viewModel.setNewQuantity(i.id, this)
-                            Toast.makeText(
-                                requireContext(),
-                                "${i.id} yeni adet guncellendi $this",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                    }
-
-                }
-            }
-        }
-    }
 }

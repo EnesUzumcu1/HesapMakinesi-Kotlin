@@ -31,12 +31,4 @@ class SavedCoinsViewModel @Inject constructor(private val sharedPreferencesManag
         sharedPreferencesManager.deleteCoinDetail(sharedPreferencesName)
     }
 
-    //update new quantity - delete next update
-    fun getNewQuantity(preferencesName: String):String{
-        return sharedPreferencesManager.getNewQuantity(preferencesName)
-    }
-
-    fun setNewQuantity(preferencesName: String,newQuantity: String){
-        sharedPreferencesManager.setNewQuantity(preferencesName,newQuantity)
-    }
 }
